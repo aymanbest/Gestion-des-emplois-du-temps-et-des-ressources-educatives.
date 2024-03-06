@@ -18,7 +18,7 @@
                         <div class=" eight wide column">
                             <div class="field" id="date-field">
                                 <p>Date</p>
-                                <input type="text" id="datepicker">
+                                <input type="text" id="datepicker" placeholder="select a date">
                             </div>
                             <div class="field" id="class-field">
                                 <p>Class</p>
@@ -182,6 +182,7 @@
 <script>
     $(document).ready(function() {
         $('#searchpep').val('false');
+        $("#datepicker").val("");
     });
     var calendarEl = null;
 
@@ -309,7 +310,9 @@
                     fetch(fetchUrl)
                         .then(response => response.json())
                         .then(data => {
-
+                            if (data.status == "empty") {
+                                alert('No events found On this Weak');
+                            }
                             // Add fetched events to the calendar
                             calendar.addEventSource(data);
                         })
