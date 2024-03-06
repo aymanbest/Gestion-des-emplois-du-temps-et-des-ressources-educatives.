@@ -8,12 +8,19 @@ use App\Http\Requests\UpdateModuleRequest;
 
 class ModuleController extends Controller
 {
+
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        return Module::all();
+    }
+
+    public function modules($classId)
+    {
+        return Module::whereRaw("FIND_IN_SET(?, class_ids)", [$classId])->get();
     }
 
     /**

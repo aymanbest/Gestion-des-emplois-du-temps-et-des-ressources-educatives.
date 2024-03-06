@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Year;
 use App\Http\Requests\StoreYearRequest;
 use App\Http\Requests\UpdateYearRequest;
+use GuzzleHttp\Psr7\Request;
+use Illuminate\Http\Request as HttpRequest;
 
 class YearController extends Controller
 {
@@ -13,7 +15,8 @@ class YearController extends Controller
      */
     public function index()
     {
-        //
+        $years = Year::all(['year_id', 'year']);
+        return response()->json($years);
     }
 
     /**
@@ -35,11 +38,14 @@ class YearController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Year $year)
+    public function show(HttpRequest $request)
     {
-        //
+        //dd($request->year);
+        $years = Year::where('year', $request->year)->first();
+       //dd($years);
+        return response()->json(['id' => $years->year_id]);
     }
-
+   
     /**
      * Show the form for editing the specified resource.
      */

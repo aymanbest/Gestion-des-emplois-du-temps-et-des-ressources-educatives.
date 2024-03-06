@@ -13,7 +13,8 @@ class GroupController extends Controller
      */
     public function index()
     {
-        //
+        $groups = Group::all(['group_id', 'group_code']);
+        return response()->json($groups);
     }
 
     /**

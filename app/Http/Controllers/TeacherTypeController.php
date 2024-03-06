@@ -13,7 +13,7 @@ class TeacherTypeController extends Controller
      */
     public function index()
     {
-        //
+        return TeacherType::all();
     }
 
     /**

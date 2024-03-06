@@ -8,6 +8,11 @@ use App\Http\Requests\UpdateClassesRequest;
 
 class ClassesController extends Controller
 {
+
+    public function modules(Classes $class)
+{
+    return $class->modules;
+}
     /**
      * Display a listing of the resource.
      */

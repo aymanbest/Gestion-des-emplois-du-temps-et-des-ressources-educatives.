@@ -13,7 +13,9 @@ class SemesterController extends Controller
      */
     public function index()
     {
-        //
+        // $result = Semester::all();
+        // dd($result);    
+        return Semester::all();
     }
 
     /**

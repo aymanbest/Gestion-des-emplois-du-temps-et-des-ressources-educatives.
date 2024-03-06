@@ -35,9 +35,9 @@ class TeacherController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Teacher $teacher)
+    public function show($teacherTypeId)
     {
-        //
+        return Teacher::where('teacher_type_id', $teacherTypeId)->get();
     }
 
     /**
