@@ -8,9 +8,13 @@
                 <h2 class="fc-header-form-title" id="fc-header-form-title-dom-1">Time Table</h2>
             </div>
             <button id="toggle-search">Toggle Search</button>
+            <button id="updates-button">Updates</button>
+            <button id="Insert-button">Insert</button>
             <div class="ui hidden divider"></div>
 
             <input type="hidden" id="searchpep" value="false">
+            <input type="hidden" id="updatepep" value="false">
+            
 
             <div class="ui form">
                 <div class="ui grid">
@@ -185,124 +189,278 @@
 
 @push('calendar-scripts')
 <!-- Initialize FullCalendar using jQuery -->
+
 <script>
+     $("#Insert-button").on('click', () => {
+        document.location.reload(); 
+     });
+
     $(document).ready(function() {
         $('#searchpep').val('false');
+        $('#updatepep').val('false');
         $("#datepicker").val("");
     });
-    var calendarEl = null;
 
-    $(document).ready(function() {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek',
-            slotDuration: '00:30:00', // 30-minute time slots
-            slotMinTime: '08:30:00', // 08:30 AM
-            slotMaxTime: '18:30:00', // 06:00 PM
-            height: 'auto', // Auto-adjust the height based on content
-            selectable: true, // Enable selection
-            select: function(info) {
-                // Handle the selection here
-                var startTime = info.start;
-                var endTime = info.end;
+    var updateEnabled = false;
 
-                // Create a new event based on the selection
-                var newEvent = {
-                    title: 'New Event', // You can set the event title
-                    start: startTime,
-                    end: endTime,
-                    allDay: false // This event is not an all-day event
-                };
+    $('#updates-button').on('click', function() {
+        $(".ui.dropdown").dropdown("clear");
+        updateEnabled = !updateEnabled;
+        toggleSearch(); // Function to toggle search
+        $('#updatepep').val(updateEnabled ? 'true' : 'false');
 
-                // Render the new event on the calendar
-                calendar.addEvent(newEvent);
+        // Check if update toggle is on
+        if ($('#updatepep').val() == 'true') {
 
-                // Clear the selection after creating the event
-                calendar.unselect();
+            $('#session-submit').text(updateEnabled ? 'Update' : 'Valider la séance').toggleClass('centered-text', searchEnabled);
+   
+        }
+    });
+
+    function toggleSearch() {
+        $('#toggle-search').trigger('click'); // Trigger search toggle
+    }
+
+
+    function captureEvent(event) {
+
+        var eventData = event; // Access the first element of the eventData array
+
+        console.log(eventData);
+
+        // Fetch teacher types
+        $.get('/api/teacher_types', function(data) {
+            var menu = $('#TeacherT-menu');
+            menu.empty(); // Clear previous options
+            data.forEach(function(teacherType) {
+                menu.append('<div class="item" data-value="' + teacherType.teacher_type_id + '">' + teacherType.name + '</div>');
+            });
+
+        });
+
+
+
+
+        // Fetch semesters
+        $.get('/api/semestre', function(data) {
+            var menu = $('#semester-menu');
+            menu.empty(); // Clear previous options
+            data.forEach(function(semester) {
+                menu.append('<div class="item" data-value="' + semester.semester_id + '">' + semester.semester_code + '</div>');
+            });
+            // Set selected value if needed
+
+        });
+
+        // Fetch departments
+        $.ajax({
+            url: 'http://127.0.0.1:8000/api/departments',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                // Clear any existing content in the "department-menu"
+                $('#department-menu').empty();
+
+                // Iterate through the response and create labels
+                $.each(response, function(index, department) {
+                    var label = $('<div class="item" onclick="refillClassAfterDepartement(' + department.department_id + ')" data-value="' + department.department_id + '">' + department.name + '</div>');
+                    $('#department-menu').append(label);
+                });
+                // Set selected value if needed
+
             },
-            editable: false,
-            selectable: false, // Enable event editing (move events)
-            eventDrop: function(info) {
-                // Handle event drop (when an event is moved)
-                console.log('Event dropped:', info.event.title, 'New start:', info.event.start,
-                    'New end:', info.event.end);
-            },
-            allDaySlot: false, // Hide the "all day" section
-            slotLabelInterval: {
-                minutes: 30
-            },
-            eventContent: function(arg) {
-                // Create the HTML for the event with styling
-                var html = `
-        <div class="fc-event-main" style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 5px; border-radius: 5px; margin-bottom: 5px;">
+            error: function(xhr, status, error) {
+                // Handle errors if any
+                console.error('Error:', status, error);
+            }
+        });
+
+        // Fetch classes based on department
+        $.get('/api/classes/show/' + eventData.department_id, function(data) {
+            var menu = $('#class-menu');
+            menu.empty(); // Clear previous options
+            data.forEach(function(classData) {
+                menu.append('<div class="item" data-value="' + classData.class_id + '">' + classData.name + '</div>');
+            });
+            // Set selected value if needed
+
+        });
+
+        // Fetch modules based on class
+        $.get('/api/classes/' + eventData.class_id + '/modules', function(data) {
+            var menu = $('#module-menu');
+            menu.empty(); // Clear previous options
+            data.forEach(function(module) {
+                menu.append('<div class="item" data-value="' + module.module_id + '">' + module.name + '</div>');
+            });
+            // Set selected value if needed
+
+        });
+
+        // Fetch teachers based on teacher type
+        $.get('/api/teachers/' + eventData.teacher_type_id, function(data) {
+            var menu = $('#teacher-menu');
+            menu.empty(); // Clear previous options
+            data.forEach(function(teacher) {
+                menu.append('<div class="item" data-value="' + teacher.teacher_id + '">' + teacher.fullname + '</div>');
+            });
+            $('#module-input').dropdown('refresh');
+            // Set selected value if needed
+
+        });
+
+        // Fetch classrooms based on department and class
+        $.get('/api/classrooms/show/' + eventData.department_id + '/' + eventData.class_id, function(data) {
+            var menu = $('#Salle-menu');
+            menu.empty(); // Clear previous options
+            data.forEach(function(classroom) {
+                menu.append('<div class="item" data-value="' + classroom.classroom_id + '">' + classroom.name + '</div>');
+            });
+            // Set selected value if needed
+
+        });
+
+        $(".ui.dropdown").dropdown("refresh"); // Refresh dropdowns
+
+        $('.ui.dropdown #TeacherT-input').parent('.ui.dropdown').dropdown('set selected', eventData.teacher_type_id);
+        $('.ui.dropdown #semester-input').parent('.ui.dropdown').dropdown('set selected', eventData.semester_id);
+        $('.ui.dropdown #department-input').parent('.ui.dropdown').dropdown('set selected', eventData.department_id);
+        $('.ui.dropdown #class-input').parent('.ui.dropdown').dropdown('set selected', eventData.class_id);
+        $('.ui.dropdown #module-input').parent('.ui.dropdown').dropdown('set selected', eventData.module_id);
+        $('.ui.dropdown #teacher-input').parent('.ui.dropdown').dropdown('set selected', eventData.teacher_id);
+        $('.ui.dropdown #Salle-menu').parent('.ui.dropdown').dropdown('set selected', eventData.classroom_id);
+        $('.ui.dropdown #day-of-week-input').parent('.ui.dropdown').dropdown('set selected', eventData.day_of_week);
+        $('.ui.dropdown #heure_demarrage').parent('.ui.dropdown').dropdown('set selected', eventData.start_time);
+        $('.ui.dropdown #heure_fin').parent('.ui.dropdown').dropdown('set selected', eventData.end_time);
+
+       // $(".ui.dropdown").dropdown("refresh"); // Refresh dropdowns
+    }
+
+        var calendarEl = null;
+
+        $(document).ready(function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                contentHeight: 'auto',
+                slotDuration: '00:30:00', // 30-minute time slots
+                slotMinTime: '08:30:00', // 08:30 AM
+                slotMaxTime: '18:30:00', // 06:00 PM
+                height: 'auto', // Auto-adjust the height based on content
+                selectable: true, // Enable selection
+                select: function(info) {
+                    // Handle the selection here
+                    var startTime = info.start;
+                    var endTime = info.end;
+
+                    // Create a new event based on the selection
+                    var newEvent = {
+                        title: 'New Event', // You can set the event title
+                        start: startTime,
+                        end: endTime,
+                        allDay: false // This event is not an all-day event
+                    };
+
+                    // Render the new event on the calendar
+                    calendar.addEvent(newEvent);
+
+                    // Clear the selection after creating the event
+                    calendar.unselect();
+                },
+                editable: false,
+                selectable: false, // Enable event editing (move events)
+                eventDrop: function(info) {
+                    // Handle event drop (when an event is moved)
+                  return false;
+                },
+                allDaySlot: false, // Hide the "all day" section
+                slotLabelInterval: {
+                    minutes: 30
+                },
+                eventClick: function(info) {
+                    console.log(info.event.extendedProps);
+                    captureEvent(info.event.extendedProps);
+                    // if ($('#updatepep').val() == 'true') {
+                    //     if ($('#searchpep').val() == 'true') {
+                    //         $('#searchpep').click();
+                    //     }
+                    //     captureEvent(info.event.extendedProps);
+                    // }
+                },
+                eventContent: function(arg) {
+                    // Create the HTML for the event with styling
+                    var html = `
+        <div class="fc-event-main" style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 0; border-radius: 0; margin: 0;">
             <div style="font-weight: bold; color: #555; text-align: center;">${arg.event.extendedProps.module_name}</div>
+            <div style="color: #555; text-align: center;">SM0${arg.event.extendedProps.semester_id}</div>
             <div style="color: #555; text-align: center;">${arg.event.extendedProps.classroom_code}</div>
             <div style="font-style: italic; color: #555; text-align: center;">${arg.event.extendedProps.teacher_fullname}</div>
         </div>
     `;
 
-                // Return the HTML
-                return {
-                    html: html
-                };
-            },
-            // Display labels every 30 minutes
-            slotLabelContent: function(arg) {
-                // Calculate the end time of the slot
-                var endTime = new Date(arg.date.getTime() + 30 * 60 * 1000); // Add 30 minutes
+                    // Return the HTML
+                    return {
+                        html: html
+                    };
+                },
+                // Display labels every 30 minutes
+                slotLabelContent: function(arg) {
+                    // Calculate the end time of the slot
+                    var endTime = new Date(arg.date.getTime() + 30 * 60 * 1000); // Add 30 minutes
 
-                // Format the label in the desired range format (e.g., "08:30 - 09:00")
-                var formattedStartTime = arg.date.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
-                var formattedEndTime = endTime.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
-                return formattedStartTime + ' - ' + formattedEndTime;
-            },
-            firstDay: 1 // Set Monday (0 = Sunday, 1 = Monday, 2 = Tuesday, etc.)
-        });
+                    // Format the label in the desired range format (e.g., "08:30 - 09:00")
+                    var formattedStartTime = arg.date.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                    var formattedEndTime = endTime.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                    return formattedStartTime + ' - ' + formattedEndTime;
+                },
+                firstDay: 1 // Set Monday (0 = Sunday, 1 = Monday, 2 = Tuesday, etc.)
+            });
 
-        var searchEnabled = false;
+            var searchEnabled = false;
 
-        // Toggle search functionality
-        $('#toggle-search').click(function() {
-            searchEnabled = !searchEnabled;
-            // Hide/show fields based on the searchEnabled flag
-            // Replace #fields with the actual selector of your fields
-            $('#semester-field').toggle(!searchEnabled);
-            $('#module-field').toggle(!searchEnabled);
-            // Add other field IDs here
-            $('#salle-field').toggle(!searchEnabled);
-            $('#teacher-type-field').toggle(!searchEnabled);
-            $('#group-field').find('p').text(searchEnabled ? 'GP (OPTIONAL)' : 'Group');
-            $('#heure-demarrage-field').toggle(!searchEnabled);
-            $('#heure-fin-field').toggle(!searchEnabled);
-            $('#seance-jour-field').toggle(!searchEnabled);
-            $('#teacher-field').toggle(!searchEnabled);
-            $('#searchpep').val(searchEnabled ? 'true' : 'false');
+            // Toggle search functionality
+            $('#toggle-search').click(function() {
+                $(".ui.dropdown").dropdown("clear");
+                searchEnabled = !searchEnabled;
+                // Hide/show fields based on the searchEnabled flag
+                // Replace #fields with the actual selector of your fields
+                $('#semester-field').toggle(!searchEnabled);
+                $('#module-field').toggle(!searchEnabled);
+                // Add other field IDs here
+                $('#salle-field').toggle(!searchEnabled);
+                $('#teacher-type-field').toggle(!searchEnabled);
+                $('#group-field').find('p').text(searchEnabled ? 'GP (OPTIONAL)' : 'Group');
+                $('#heure-demarrage-field').toggle(!searchEnabled);
+                $('#heure-fin-field').toggle(!searchEnabled);
+                $('#seance-jour-field').toggle(!searchEnabled);
+                $('#teacher-field').toggle(!searchEnabled);
+                $('#searchpep').val(searchEnabled ? 'true' : 'false');
 
-            // Change the text of the "Valider la séance" button
-            $('#session-submit').text(searchEnabled ? 'Search' : 'Valider la séance').toggleClass('centered-text', searchEnabled);
-        });
+                // Change the text of the "Valider la séance" button
+                $('#session-submit').text(searchEnabled ? 'Search' : 'Valider la séance').toggleClass('centered-text', searchEnabled);
+            });
 
-        // Fetch data from the provided URL
-        $('#session-submit').click(function() {
-            if (searchEnabled) {
-                //e.preventDefault();
-                var classInput = $("#class-input").val();
-                var departmentInput = $("#department-input").val();
-                var selectedDate = $("#datepicker").datepicker("getDate");
-                
-                var groupInput = $("#Group-input").val();
+            // Fetch data from the provided URL
+            $('#session-submit').click(function() {
+                if (searchEnabled) {
+                    //e.preventDefault();
+                    var classInput = $("#class-input").val();
+                    var departmentInput = $("#department-input").val();
+                    var selectedDate = $("#datepicker").datepicker("getDate");
+
+                    var groupInput = $("#Group-input").val();
 
 
-                // $.get('api/years/show/' + selectedYear, function(data) {
-                   var selectedYearID = $("#date-input").val();
+                    // $.get('api/years/show/' + selectedYear, function(data) {
+                    var selectedYearID = $("#date-input").val();
 
                     var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' + departmentInput + '/classes/' + classInput + '/year/' + selectedYearID;
 
@@ -317,50 +475,54 @@
                             if (data.status == "empty") {
                                 alert('No events found On this Weak');
                             }
-                            // Add fetched events to the calendar
                             calendar.addEventSource(data);
+
+                            if ($('#updatepep').val() == 'true') {
+                                toggleSearch();
+                                //captureEvent(data);
+                            }
                         })
                         .catch(error => {
                             console.error('Error fetching data:', error);
                         });
-                // });
-            }
-        });
-
-        calendar.render();
-        $.get('/api/years', function(data) {
-            var minYear = Infinity;
-            var maxYear = -Infinity;
-
-            for (var i = 0; i < data.length; i++) {
-                var year = parseInt(data[i].year);
-                if (year < minYear) minYear = year;
-                if (year > maxYear) maxYear = year;
-            }
-
-            minYear = new Date(minYear, 0, 1);
-            maxYear = new Date(maxYear, 11, 31);
-
-            $("#datepicker").datepicker({
-                defaultDate: null,
-                changeMonth: true,
-                changeYear: true,
-                minDate: minYear,
-                maxDate: maxYear,
-                beforeShowDay: function(date) {
-                    var day = date.getDay();
-                    return [(day == 1)]; // Only allow selection of Mondays
-                },
-                onSelect: function(dateText, inst) {
-                    var date = $(this).datepicker('getDate');
-                    var startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 1);
-                    var endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 7);
-                    calendar.gotoDate(startDate); // Change the start date of the FullCalendar
-                    calendar.render(); // Render the calendar to display the selected week
+                    // });
                 }
             });
+
+            calendar.render();
+            $.get('/api/years', function(data) {
+                var minYear = Infinity;
+                var maxYear = -Infinity;
+
+                for (var i = 0; i < data.length; i++) {
+                    var year = parseInt(data[i].year);
+                    if (year < minYear) minYear = year;
+                    if (year > maxYear) maxYear = year;
+                }
+
+                minYear = new Date(minYear, 0, 1);
+                maxYear = new Date(maxYear, 11, 31);
+
+                $("#datepicker").datepicker({
+                    defaultDate: null,
+                    changeMonth: true,
+                    changeYear: true,
+                    minDate: minYear,
+                    maxDate: maxYear,
+                    beforeShowDay: function(date) {
+                        var day = date.getDay();
+                        return [(day == 1)]; // Only allow selection of Mondays
+                    },
+                    onSelect: function(dateText, inst) {
+                        var date = $(this).datepicker('getDate');
+                        var startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 1);
+                        var endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 7);
+                        calendar.gotoDate(startDate); // Change the start date of the FullCalendar
+                        calendar.render(); // Render the calendar to display the selected week
+                    }
+                });
+            });
         });
-    });
 </script>
 
 <script>
@@ -566,78 +728,78 @@
 
 <script>
     $("#session-submit").on('click', () => {
-    if ($("#searchpep").val() == "false") {
-        // Fetch all schedules
-        $.get('http://127.0.0.1:8000/api/schedules', function(schedules) {
-            var conflict = false;
-            var conflictGroups = [];
+        if ($("#searchpep").val() == "false") {
+            // Fetch all schedules
+            $.get('http://127.0.0.1:8000/api/schedules', function(schedules) {
+                var conflict = false;
+                var conflictGroups = [];
 
-            // Check each schedule for conflicts
-            $.each(schedules, function(index, schedule) {
-                if ($("#Salle-input").val() == schedule.classroom_id &&
-                    $("#heure_demarrage").val() == schedule.start_time &&
-                    $("#heure_fin").val() == schedule.end_time&&
-                    $("#day-of-week-input").val() == schedule.day_of_week) {
-                    conflict = true;
-                    conflictGroups.push(schedule.group.group_id);
+                // Check each schedule for conflicts
+                $.each(schedules, function(index, schedule) {
+                    if ($("#Salle-input").val() == schedule.classroom_id &&
+                        $("#heure_demarrage").val() == schedule.start_time &&
+                        $("#heure_fin").val() == schedule.end_time &&
+                        $("#day-of-week-input").val() == schedule.day_of_week) {
+                        conflict = true;
+                        conflictGroups.push(schedule.group.group_id);
+                    }
+                });
+
+                // If there's a conflict, show a confirmation dialog
+                if (conflict) {
+                    var message = 'The classroom is already full. Do you want to proceed?';
+                    if (conflictGroups.length > 0) {
+                        message += ' The conflicting groups are: ' + conflictGroups.join(', ') + '.';
+                    }
+                    if (!confirm(message)) {
+                        return; // Cancel the form submission
+                    }
                 }
+
+                // If there's no conflict or the user confirmed, proceed with the form submission
+                var form = new FormData();
+                form.append("year_id", $("#date-input").val());
+                form.append("semester_id", $("#semester-input").val());
+                form.append("group_id", $("#Group-input").val());
+                form.append("class_id", $("#class-input").val());
+                form.append("module_id", $("#module-input").val());
+                form.append("teacher_id", $("#teacher-input").val());
+                form.append("classroom_id", $("#Salle-input").val());
+                form.append("day_of_week", $("#day-of-week-input").val());
+                form.append("start_time", $("#heure_demarrage").val());
+                form.append("end_time", $("#heure_fin").val());
+
+                var settings = {
+                    "url": "http://127.0.0.1:8000/api/schedules/create",
+                    "method": "POST",
+                    "timeout": 0,
+                    "headers": {
+                        "Accept": "application/json"
+                    },
+                    "processData": false,
+                    "mimeType": "multipart/form-data",
+                    "contentType": false,
+                    "data": form
+                };
+
+                $.ajax(settings).done(function(response) {
+                    if (response.errors) {
+                        // Handle validation errors here
+                        $.each(response.errors, function(field, error) {
+                            // Display the error message for the corresponding field
+                            $("#" + field + "-error").text(error[0]);
+                        });
+                    } else {
+                        // Request was successful, process the response data
+                        console.log(response);
+                    }
+                }).fail(function(xhr, status, error) {
+                    // Handle other errors (e.g., 500 Internal Server Error)
+                    console.error(xhr.responseText);
+                });
             });
-
-            // If there's a conflict, show a confirmation dialog
-            if (conflict) {
-                var message = 'The classroom is already full. Do you want to proceed?';
-                if (conflictGroups.length > 0) {
-                    message += ' The conflicting groups are: ' + conflictGroups.join(', ') + '.';
-                }
-                if (!confirm(message)) {
-                    return;  // Cancel the form submission
-                }
-            }
-
-            // If there's no conflict or the user confirmed, proceed with the form submission
-            var form = new FormData();
-            form.append("year_id",  $("#date-input").val());
-            form.append("semester_id", $("#semester-input").val());
-            form.append("group_id", $("#Group-input").val());
-            form.append("class_id", $("#class-input").val());
-            form.append("module_id", $("#module-input").val());
-            form.append("teacher_id", $("#teacher-input").val());
-            form.append("classroom_id", $("#Salle-input").val());
-            form.append("day_of_week", $("#day-of-week-input").val());
-            form.append("start_time", $("#heure_demarrage").val());
-            form.append("end_time", $("#heure_fin").val());
-
-            var settings = {
-                "url": "http://127.0.0.1:8000/api/schedules/create",
-                "method": "POST",
-                "timeout": 0,
-                "headers": {
-                    "Accept": "application/json"
-                },
-                "processData": false,
-                "mimeType": "multipart/form-data",
-                "contentType": false,
-                "data": form
-            };
-
-            $.ajax(settings).done(function(response) {
-                if (response.errors) {
-                    // Handle validation errors here
-                    $.each(response.errors, function(field, error) {
-                        // Display the error message for the corresponding field
-                        $("#" + field + "-error").text(error[0]);
-                    });
-                } else {
-                    // Request was successful, process the response data
-                    console.log(response);
-                }
-            }).fail(function(xhr, status, error) {
-                // Handle other errors (e.g., 500 Internal Server Error)
-                console.error(xhr.responseText);
-            });
-        });
-    }
-});
+        }
+    });
     // $("#session-submit").on('click', () => {
 
 

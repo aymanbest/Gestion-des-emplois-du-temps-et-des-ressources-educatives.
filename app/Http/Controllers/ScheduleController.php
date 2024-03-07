@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Year;
+use App\Models\Module;
+use App\Models\Classroom;
 
 class ScheduleController extends Controller
 {
@@ -19,9 +21,9 @@ class ScheduleController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-{
-    return Schedule::with('year', 'semester', 'group', 'classes', 'module', 'teacher', 'classeroom')->get();
-}
+    {
+        return Schedule::with('year', 'semester', 'group', 'classes', 'module', 'teacher', 'classeroom')->get();
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -134,42 +136,46 @@ class ScheduleController extends Controller
 
     public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $group_id)
     {
-
-
-        // dd($department_id, $class_id, $year_id, $group_id);
-
-
         $schedules = DB::table('schedules')
             ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
             ->join('departments', 'classes.department_id', '=', 'departments.department_id')
-            ->join('modules', 'schedules.module_id', '=', 'modules.module_id') // Join the modules table
-            ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id') // Join the classroom table
-            ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id') // Join the teachers table
-            ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname') // Select the required fields
+            ->join('modules', 'schedules.module_id', '=', 'modules.module_id')
+            ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id')
+            ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
+            ->join('teacher_types', 'teachers.teacher_type_id', '=', 'teacher_types.teacher_type_id') // Join the teacher_types table
+            ->join('semesters', 'schedules.semester_id', '=', 'semesters.semester_id') // Join the semesters table
+            ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname', 'teacher_types.teacher_type_id') // Select the required fields including teacher_types_id
             ->where('departments.department_id', '=', $department_id)
             ->where('classes.class_id', '=', $class_id)
             ->where('schedules.year_id', '=', $year_id)
             ->where('schedules.group_id', '=', $group_id)
             ->get();
 
-        //dd($schedules);
-
-
         $events = [];
 
         foreach ($schedules as $schedule) {
             array_push($events, [
-                'title' => $schedule->module_name,
+                'title' => $schedule->module_name . ' ' . $schedule->classroom_code,
                 'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
                 'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time,
-                'module_name' => $schedule->module_name, // Add the module name to the event
-                'classroom_code' => $schedule->classroom_code, // Add the classroom code to the event
-                'teacher_fullname' => $schedule->fullname // Add the teacher's fullname to the event
+                'schedule_id' => $schedule->schedule_id,
+                'class_id' => $schedule->class_id,
+                'module_id' => $schedule->module_id,
+                'classroom_id' => $schedule->classroom_id,
+                'teacher_id' => $schedule->teacher_id,
+                'teacher_type_id' => $schedule->teacher_type_id,
+                'semester_id' => $schedule->semester_id,
+                'day_of_week' => $schedule->day_of_week,
+                'start_time' => $schedule->start_time,
+                'end_time' => $schedule->end_time,
+                'year_id' => $schedule->year_id,
+                'group_id' => $schedule->group_id,
+                'module_name' => $schedule->module_name,
+                'classroom_code' => $schedule->classroom_code,
+                'teacher_fullname' => $schedule->fullname,
+                'department_id' => $department_id
             ]);
         }
-
-        // dd($events);
-
 
         if (empty($events)) {
             return response()->json(['status' => 'empty']);
@@ -196,16 +202,16 @@ class ScheduleController extends Controller
 
     //     $events = [];
 
-        // foreach ($schedules as $schedule) {
-        //     array_push($events, [
-        //         'title' => 'Event ' . $schedule->schedule_id,
-        //         'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
-        //         'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time,
-        //         'module_name' => $schedule->module_name, // Add the module name to the event
-        //         'classroom_code' => $schedule->classroom_code, // Add the classroom code to the event
-        //         'teacher_fullname' => $schedule->fullname // Add the teacher's fullname to the event
-        //     ]);
-        // }
+    // foreach ($schedules as $schedule) {
+    //     array_push($events, [
+    //         'title' => 'Event ' . $schedule->schedule_id,
+    //         'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
+    //         'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time,
+    //         'module_name' => $schedule->module_name, // Add the module name to the event
+    //         'classroom_code' => $schedule->classroom_code, // Add the classroom code to the event
+    //         'teacher_fullname' => $schedule->fullname // Add the teacher's fullname to the event
+    //     ]);
+    // }
 
     //     if (empty($events)) {
     //         return response()->json(['status' => 'empty']);
@@ -258,45 +264,50 @@ class ScheduleController extends Controller
     //     return $dates; // return the array of dates
     // }
     public function changeDayOfWeek(Request $request)
-{
-    // Validate the request data
-    $request->validate([
-        'schedule_id' => 'required|exists:schedules,schedule_id',
-        'day_of_week' => 'required|string|max:10',
-    ]);
+    {
+        // Validate the request data
+        $request->validate([
+            'schedule_id' => 'required|exists:schedules,schedule_id',
+            'day_of_week' => 'required|string|max:10',
+        ]);
 
-    // Find the schedule and update the day_of_week
-    $schedule = Schedule::find($request->schedule_id);
-    $schedule->day_of_week = $request->day_of_week;
-    $schedule->save();
+        // Find the schedule and update the day_of_week
+        $schedule = Schedule::find($request->schedule_id);
+        $schedule->day_of_week = $request->day_of_week;
+        $schedule->save();
 
-    return response()->json(['message' => 'Schedule updated successfully']);
-}
+        return response()->json(['message' => 'Schedule updated successfully']);
+    }
 
-public function changeEverything(Request $request)
-{
-    // Validate the request data
-    $request->validate([
-        'schedule_id' => 'required|exists:schedules,schedule_id',
-        'year_id' => 'nullable|exists:years,year_id',
-        'semester_id' => 'nullable|exists:semesters,semester_id',
-        'group_id' => 'nullable|exists:groups,group_id',
-        'class_id' => 'nullable|exists:classes,class_id',
-        'module_id' => 'nullable|exists:modules,module_id',
-        'teacher_id' => 'nullable|exists:teachers,teacher_id',
-        'classroom_id' => 'nullable|exists:classrooms,classroom_id',
-        'day_of_week' => 'nullable|string|max:10',
-        'start_time' => 'nullable|date_format:H:i:s',
-        'end_time' => 'nullable|date_format:H:i:s',
-    ]);
+    public function changeEverything(Request $request)
+    {
+        // Validate the request data
+        $request->validate([
+            'schedule_id' => 'required|exists:schedules,schedule_id',
+            'module_name' => 'required|exists:modules,name',
+            'classroom_code' => 'required|exists:classrooms,code',
+            'day_of_week' => 'nullable|string|max:10',
+            'start_time' => 'nullable|date_format:H:i:s',
+            'end_time' => 'nullable|date_format:H:i:s',
+        ]);
 
-    // Find the schedule and update all fields
-    $schedule = Schedule::find($request->schedule_id);
-    $schedule->fill($request->all());
-    $schedule->save();
+        // Find the corresponding IDs based on the module_name and classroom_code
+        $module = Module::where('name', $request->module_name)->first();
+        $classroom = Classroom::where('classroom_code', $request->classroom_code)->first();
 
-    return response()->json(['message' => 'Schedule updated successfully']);
-}
+        // Find the schedule and update all fields
+        $schedule = Schedule::find($request->schedule_id);
+        $schedule->fill([
+            'module_id' => $module->id,
+            'classroom_id' => $classroom->id,
+            'day_of_week' => $request->day_of_week,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+        ]);
+        $schedule->save();
+
+        return response()->json(['message' => 'Schedule updated successfully']);
+    }
 
     public function getSchedulesForWeek(Request $request)
     {
