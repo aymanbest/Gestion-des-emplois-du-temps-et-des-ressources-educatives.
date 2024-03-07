@@ -18,7 +18,13 @@
                         <div class=" eight wide column">
                             <div class="field" id="date-field">
                                 <p>Date</p>
-                                <input type="text" id="datepicker" placeholder="select a date">
+                                <div class="ui dropdown selection">
+                                    <input type="hidden" id="date-input" name="date">
+                                    <div class="default text">date</div>
+                                    <i class="dropdown icon"></i>
+                                    <div class="menu" id="date-menu">
+                                    </div>
+                                </div>
                             </div>
                             <div class="field" id="class-field">
                                 <p>Class</p>
@@ -291,16 +297,14 @@
                 var classInput = $("#class-input").val();
                 var departmentInput = $("#department-input").val();
                 var selectedDate = $("#datepicker").datepicker("getDate");
-                var formattedDate = selectedDate.getFullYear() + '-' + (selectedDate.getMonth() + 1).toString().padStart(2, '0') + '-' + selectedDate.getDate().toString().padStart(2, '0');
-                console.log("forma" + formattedDate);
-                var selectedYear = selectedDate.getFullYear();
+                
                 var groupInput = $("#Group-input").val();
 
 
-                $.get('api/years/show/' + selectedYear, function(data) {
-                    var selectedYearID = data.id;
+                // $.get('api/years/show/' + selectedYear, function(data) {
+                   var selectedYearID = $("#date-input").val();
 
-                    var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' + departmentInput + '/classes/' + classInput + '/year/' + selectedYearID + '/date/' + formattedDate;
+                    var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' + departmentInput + '/classes/' + classInput + '/year/' + selectedYearID;
 
                     if (groupInput) {
                         fetchUrl += '/group/' + groupInput;
@@ -319,7 +323,7 @@
                         .catch(error => {
                             console.error('Error fetching data:', error);
                         });
-                });
+                // });
             }
         });
 
@@ -381,6 +385,13 @@
             var menu = $('#semester-menu');
             data.forEach(function(semester) {
                 menu.append('<div class="item" data-value="' + semester.semester_id + '">' + semester.semester_code + '</div>');
+            });
+        });
+
+        $.get('/api/years', function(data) {
+            var menu = $('#date-menu');
+            data.forEach(function(date) {
+                menu.append('<div class="item" data-value="' + date.year_id + '">' + date.year + '</div>');
             });
         });
 
@@ -555,56 +566,132 @@
 
 <script>
     $("#session-submit").on('click', () => {
-        if ($("#searchpep").val() == "false") {
-            var selectedDate = $("#datepicker").datepicker("getDate");
-            var selectedYear = selectedDate.getFullYear();
-            $.get('api/years/show/' + selectedYear, function(data) {
-                var selectedYearID = data.id;
+    if ($("#searchpep").val() == "false") {
+        // Fetch all schedules
+        $.get('http://127.0.0.1:8000/api/schedules', function(schedules) {
+            var conflict = false;
+            var conflictGroups = [];
 
-                var form = new FormData();
-                form.append("year_id", selectedYearID);
-                form.append("semester_id", $("#semester-input").val());
-                form.append("group_id", $("#Group-input").val());
-                form.append("class_id", $("#class-input").val());
-                form.append("module_id", $("#module-input").val());
-                form.append("teacher_id", $("#teacher-input").val());
-                form.append("classroom_id", $("#Salle-input").val());
-                form.append("day_of_week", $("#day-of-week-input").val());
-                form.append("start_time", $("#heure_demarrage").val());
-                form.append("end_time", $("#heure_fin").val());
-
-                console.log(form);
-
-                var settings = {
-                    "url": "http://127.0.0.1:8000/api/schedules/create",
-                    "method": "POST",
-                    "timeout": 0,
-                    "headers": {
-                        "Accept": "application/json"
-                    },
-                    "processData": false,
-                    "mimeType": "multipart/form-data",
-                    "contentType": false,
-                    "data": form
-                };
-
-                $.ajax(settings).done(function(response) {
-                    if (response.errors) {
-                        // Handle validation errors here
-                        $.each(response.errors, function(field, error) {
-                            // Display the error message for the corresponding field
-                            $("#" + field + "-error").text(error[0]);
-                        });
-                    } else {
-                        // Request was successful, process the response data
-                        console.log(response);
-                    }
-                }).fail(function(xhr, status, error) {
-                    // Handle other errors (e.g., 500 Internal Server Error)
-                    console.error(xhr.responseText);
-                });
+            // Check each schedule for conflicts
+            $.each(schedules, function(index, schedule) {
+                if ($("#Salle-input").val() == schedule.classroom_id &&
+                    $("#heure_demarrage").val() == schedule.start_time &&
+                    $("#heure_fin").val() == schedule.end_time&&
+                    $("#day-of-week-input").val() == schedule.day_of_week) {
+                    conflict = true;
+                    conflictGroups.push(schedule.group.group_id);
+                }
             });
-        }
-    });
+
+            // If there's a conflict, show a confirmation dialog
+            if (conflict) {
+                var message = 'The classroom is already full. Do you want to proceed?';
+                if (conflictGroups.length > 0) {
+                    message += ' The conflicting groups are: ' + conflictGroups.join(', ') + '.';
+                }
+                if (!confirm(message)) {
+                    return;  // Cancel the form submission
+                }
+            }
+
+            // If there's no conflict or the user confirmed, proceed with the form submission
+            var form = new FormData();
+            form.append("year_id",  $("#date-input").val());
+            form.append("semester_id", $("#semester-input").val());
+            form.append("group_id", $("#Group-input").val());
+            form.append("class_id", $("#class-input").val());
+            form.append("module_id", $("#module-input").val());
+            form.append("teacher_id", $("#teacher-input").val());
+            form.append("classroom_id", $("#Salle-input").val());
+            form.append("day_of_week", $("#day-of-week-input").val());
+            form.append("start_time", $("#heure_demarrage").val());
+            form.append("end_time", $("#heure_fin").val());
+
+            var settings = {
+                "url": "http://127.0.0.1:8000/api/schedules/create",
+                "method": "POST",
+                "timeout": 0,
+                "headers": {
+                    "Accept": "application/json"
+                },
+                "processData": false,
+                "mimeType": "multipart/form-data",
+                "contentType": false,
+                "data": form
+            };
+
+            $.ajax(settings).done(function(response) {
+                if (response.errors) {
+                    // Handle validation errors here
+                    $.each(response.errors, function(field, error) {
+                        // Display the error message for the corresponding field
+                        $("#" + field + "-error").text(error[0]);
+                    });
+                } else {
+                    // Request was successful, process the response data
+                    console.log(response);
+                }
+            }).fail(function(xhr, status, error) {
+                // Handle other errors (e.g., 500 Internal Server Error)
+                console.error(xhr.responseText);
+            });
+        });
+    }
+});
+    // $("#session-submit").on('click', () => {
+
+
+    //     if ($("#searchpep").val() == "false") {
+    //         // var selectedDate = $("#datepicker").datepicker("getDate");
+    //         // var selectedYear = selectedDate.getFullYear();
+    //         // $.get('api/years/show/' + selectedYear, function(data) {
+    //             // var selectedYearID = data.id;
+    //             var form = new FormData();
+    //             form.append("year_id",  $("#date-input").val());
+    //             form.append("semester_id", $("#semester-input").val());
+    //             form.append("group_id", $("#Group-input").val());
+    //             form.append("class_id", $("#class-input").val());
+    //             form.append("module_id", $("#module-input").val());
+    //             form.append("teacher_id", $("#teacher-input").val());
+    //             form.append("classroom_id", $("#Salle-input").val());
+    //             form.append("day_of_week", $("#day-of-week-input").val());
+    //             // var selectedDate = $("#datepicker").datepicker("getDate");
+    //             // var formattedDate = selectedDate.getFullYear() + '-' + (selectedDate.getMonth() + 1).toString().padStart(2, '0') + '-' + selectedDate.getDate().toString().padStart(2, '0');
+    //             form.append("start_time", $("#heure_demarrage").val());
+    //             form.append("end_time", $("#heure_fin").val());
+
+    //             console.log(form);
+
+    //             var settings = {
+    //                 "url": "http://127.0.0.1:8000/api/schedules/create",
+    //                 "method": "POST",
+    //                 "timeout": 0,
+    //                 "headers": {
+    //                     "Accept": "application/json"
+    //                 },
+    //                 "processData": false,
+    //                 "mimeType": "multipart/form-data",
+    //                 "contentType": false,
+    //                 "data": form
+    //             };
+
+    //             $.ajax(settings).done(function(response) {
+    //                 if (response.errors) {
+    //                     // Handle validation errors here
+    //                     $.each(response.errors, function(field, error) {
+    //                         // Display the error message for the corresponding field
+    //                         $("#" + field + "-error").text(error[0]);
+    //                     });
+    //                 } else {
+    //                     // Request was successful, process the response data
+    //                     console.log(response);
+    //                 }
+    //             }).fail(function(xhr, status, error) {
+    //                 // Handle other errors (e.g., 500 Internal Server Error)
+    //                 console.error(xhr.responseText);
+    //             });
+    //         // });
+    //     }
+    // });
 </script>
 @endpush

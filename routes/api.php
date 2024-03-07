@@ -37,9 +37,9 @@ Route::get('/schedules', [App\Http\Controllers\ScheduleController::class, 'index
 Route::get('/schedules/show/{id}', [App\Http\Controllers\ScheduleController::class, 'show'])->name('schedule');
 Route::get('/schedules/show/department/{department_id}', [App\Http\Controllers\ScheduleController::class, 'showSchedulesByDepartment'])->name('schedulesByDepartment');
 Route::get('/schedules/show/department/{department_id}/classes/{class_id}', [App\Http\Controllers\ScheduleController::class, 'showSchedulesByDepartmentClasses'])->name('schedulesByDepartmentClasses');
-Route::get('/schedules/show/department/{department_id}/classes/{class_id}/year/{year_id}/date/{date}', [App\Http\Controllers\ScheduleController::class, 'showSchedulesByYearByDepartmentClasses'])->name('showSchedulesByYearByDepartmentClasses');
+Route::get('/schedules/show/department/{department_id}/classes/{class_id}/year/{year_id}', [App\Http\Controllers\ScheduleController::class, 'showSchedulesByYearByDepartmentClasses'])->name('showSchedulesByYearByDepartmentClasses');
 
-Route::get('/schedules/show/department/{department_id}/classes/{class_id}/year/{year_id}/date/{date}/group/{group_id}', [App\Http\Controllers\ScheduleController::class, 'showSchedulesByYearByDepartmentClassesGroup'])->name('showSchedulesByYearByDepartmentClassesGroup');
+Route::get('/schedules/show/department/{department_id}/classes/{class_id}/year/{year_id}/group/{group_id}', [App\Http\Controllers\ScheduleController::class, 'showSchedulesByYearByDepartmentClassesGroup'])->name('showSchedulesByYearByDepartmentClassesGroup');
 
 Route::post('/schedules/create', [App\Http\Controllers\ScheduleController::class, 'store'])->name('createSchedules');
 Route::get('/classes/{class}/modules', [App\Http\Controllers\ModuleController::class, 'modules'])->name('classes.modules');
@@ -50,3 +50,5 @@ Route::get('/years', [App\Http\Controllers\YearController::class, 'index'])->nam
 Route::get('/groups', [App\Http\Controllers\GroupController::class, 'index'])->name('groups');
 Route::get('/years/show/{year}', [App\Http\Controllers\YearController::class, 'show'])->name('years.show');
 Route::get('/schedules/week', [App\Http\Controllers\ScheduleController::class, 'getSchedulesForWeek'])->name('schedules.week');
+Route::post('/schedules/changeDayOfWeek', 'ScheduleController@changeDayOfWeek');
+Route::post('/schedules/changeEverything', 'ScheduleController@changeEverything');

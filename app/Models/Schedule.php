@@ -43,4 +43,17 @@ class Schedule extends Model
     {
         return $this->belongsTo(Year::class, 'year_id');
     }
+
+    public function semester()
+{
+    return $this->belongsTo('App\Models\Semester', 'semester_id', 'semester_id');
+}
+    public function group()
+    {
+        return $this->belongsTo('App\Models\Group', 'group_id');
+    }
+    public function module()
+    {
+        return $this->belongsTo('App\Models\Module', 'module_id');
+    }
 }

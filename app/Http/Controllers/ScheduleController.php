@@ -19,9 +19,9 @@ class ScheduleController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        return Schedule::all();
-    }
+{
+    return Schedule::with('year', 'semester', 'group', 'classes', 'module', 'teacher', 'classeroom')->get();
+}
 
     /**
      * Show the form for creating a new resource.
@@ -44,7 +44,7 @@ class ScheduleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id, $date)
+    public function show($id)
     {
 
         $schedules = Classes::find($id)->schedules;
@@ -55,15 +55,15 @@ class ScheduleController extends Controller
         foreach ($schedules as $schedule) {
             array_push($events, [
                 'title' => 'Event ' . $schedule->schedule_id,
-                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->start_time,
-                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->end_time
+                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
+                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time
             ]);
         }
 
         return response()->json($events);
     }
 
-    public function showSchedulesByDepartment($department_id, $date)
+    public function showSchedulesByDepartment($department_id)
     {
         $schedules = DB::table('schedules')
             ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
@@ -77,15 +77,15 @@ class ScheduleController extends Controller
         foreach ($schedules as $schedule) {
             array_push($events, [
                 'title' => 'Event ' . $schedule->schedule_id,
-                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->start_time,
-                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->end_time
+                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
+                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time
             ]);
         }
 
         return response()->json($events);
     }
 
-    public function showSchedulesByDepartmentClasses($department_id, $class_id, $date)
+    public function showSchedulesByDepartmentClasses($department_id, $class_id)
     {
         $schedules = DB::table('schedules')
             ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
@@ -100,15 +100,15 @@ class ScheduleController extends Controller
         foreach ($schedules as $schedule) {
             array_push($events, [
                 'title' => 'Event ' . $schedule->schedule_id,
-                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->start_time,
-                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->end_time
+                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
+                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time
             ]);
         }
 
         return response()->json($events);
     }
 
-    public function showSchedulesByYearByDepartmentClasses($department_id, $class_id, $year_id, $date, $group_id)
+    public function showSchedulesByYearByDepartmentClasses($department_id, $class_id, $year_id)
     {
         $schedules = DB::table('schedules')
             ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
@@ -124,19 +124,19 @@ class ScheduleController extends Controller
         foreach ($schedules as $schedule) {
             array_push($events, [
                 'title' => 'Event ' . $schedule->schedule_id,
-                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->start_time,
-                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->end_time
+                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
+                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time
             ]);
         }
 
         return response()->json($events);
     }
 
-    public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $date, $group_id)
+    public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $group_id)
     {
 
 
-        // dd($department_id, $class_id, $year_id, $date, $group_id);
+        // dd($department_id, $class_id, $year_id, $group_id);
 
 
         $schedules = DB::table('schedules')
@@ -160,8 +160,8 @@ class ScheduleController extends Controller
         foreach ($schedules as $schedule) {
             array_push($events, [
                 'title' => $schedule->module_name,
-                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->start_time,
-                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->end_time,
+                'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
+                'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time,
                 'module_name' => $schedule->module_name, // Add the module name to the event
                 'classroom_code' => $schedule->classroom_code, // Add the classroom code to the event
                 'teacher_fullname' => $schedule->fullname // Add the teacher's fullname to the event
@@ -179,7 +179,7 @@ class ScheduleController extends Controller
     }
 
 
-    // public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id = 1, $group_id, $date)
+    // public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id = 1, $group_id)
     // {
     // $schedules = DB::table('schedules')
     //     ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
@@ -199,8 +199,8 @@ class ScheduleController extends Controller
         // foreach ($schedules as $schedule) {
         //     array_push($events, [
         //         'title' => 'Event ' . $schedule->schedule_id,
-        //         'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->start_time,
-        //         'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week, $date)[0] . 'T' . $schedule->end_time,
+        //         'start' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->start_time,
+        //         'end' => $this->getDatesOfWeekdayInCurrentWeek($schedule->day_of_week)[0] . 'T' . $schedule->end_time,
         //         'module_name' => $schedule->module_name, // Add the module name to the event
         //         'classroom_code' => $schedule->classroom_code, // Add the classroom code to the event
         //         'teacher_fullname' => $schedule->fullname // Add the teacher's fullname to the event
@@ -214,31 +214,9 @@ class ScheduleController extends Controller
     //     return response()->json($events);
     // }
 
-    // private function getDatesOfWeekdayInCurrentWeek($dayOfWeekString)
-    // {
-    //     $date = new DateTime(); // create a new DateTime object for the current date
-    //     $weekStart = $date->modify('this week'); // get the date for the start of the week
-    //     $dayOfWeek = strtolower($dayOfWeekString); // convert the day of the week to lowercase
-
-    //     $dates = array(); // create an empty array to store the dates
-
-    //     // loop through the days of the week and add each date to the $dates array
-    //     for ($i = 0; $i < 7; $i++) {
-    //         $dateString = $weekStart->format('Y-m-d'); // get the date in the format YYYY-MM-DD
-
-    //         if (strtolower($weekStart->format('l')) === $dayOfWeek) { // check if the day of the week matches the specified day of the week
-    //             $dates[] = $dateString; // add the date to the $dates array
-    //         }
-
-    //         $weekStart->modify('+1 day'); // move to the next day
-    //     }
-
-    //     return $dates; // return the array of dates
-    // }
-
-    function getDatesOfWeekdayInCurrentWeek($dayOfWeekString, $givenDate)
+    private function getDatesOfWeekdayInCurrentWeek($dayOfWeekString)
     {
-        $date = new DateTime($givenDate); // create a new DateTime object for the given date
+        $date = new DateTime(); // create a new DateTime object for the current date
         $weekStart = $date->modify('this week'); // get the date for the start of the week
         $dayOfWeek = strtolower($dayOfWeekString); // convert the day of the week to lowercase
 
@@ -257,6 +235,68 @@ class ScheduleController extends Controller
 
         return $dates; // return the array of dates
     }
+
+    // function getDatesOfWeekdayInCurrentWeek($dayOfWeekString, $givenDate)
+    // {
+    //     $date = new DateTime($givenDate); // create a new DateTime object for the given date
+    //     $weekStart = $date->modify('this week'); // get the date for the start of the week
+    //     $dayOfWeek = strtolower($dayOfWeekString); // convert the day of the week to lowercase
+
+    //     $dates = array(); // create an empty array to store the dates
+
+    //     // loop through the days of the week and add each date to the $dates array
+    //     for ($i = 0; $i < 7; $i++) {
+    //         $dateString = $weekStart->format('Y-m-d'); // get the date in the format YYYY-MM-DD
+
+    //         if (strtolower($weekStart->format('l')) === $dayOfWeek) { // check if the day of the week matches the specified day of the week
+    //             $dates[] = $dateString; // add the date to the $dates array
+    //         }
+
+    //         $weekStart->modify('+1 day'); // move to the next day
+    //     }
+
+    //     return $dates; // return the array of dates
+    // }
+    public function changeDayOfWeek(Request $request)
+{
+    // Validate the request data
+    $request->validate([
+        'schedule_id' => 'required|exists:schedules,schedule_id',
+        'day_of_week' => 'required|string|max:10',
+    ]);
+
+    // Find the schedule and update the day_of_week
+    $schedule = Schedule::find($request->schedule_id);
+    $schedule->day_of_week = $request->day_of_week;
+    $schedule->save();
+
+    return response()->json(['message' => 'Schedule updated successfully']);
+}
+
+public function changeEverything(Request $request)
+{
+    // Validate the request data
+    $request->validate([
+        'schedule_id' => 'required|exists:schedules,schedule_id',
+        'year_id' => 'nullable|exists:years,year_id',
+        'semester_id' => 'nullable|exists:semesters,semester_id',
+        'group_id' => 'nullable|exists:groups,group_id',
+        'class_id' => 'nullable|exists:classes,class_id',
+        'module_id' => 'nullable|exists:modules,module_id',
+        'teacher_id' => 'nullable|exists:teachers,teacher_id',
+        'classroom_id' => 'nullable|exists:classrooms,classroom_id',
+        'day_of_week' => 'nullable|string|max:10',
+        'start_time' => 'nullable|date_format:H:i:s',
+        'end_time' => 'nullable|date_format:H:i:s',
+    ]);
+
+    // Find the schedule and update all fields
+    $schedule = Schedule::find($request->schedule_id);
+    $schedule->fill($request->all());
+    $schedule->save();
+
+    return response()->json(['message' => 'Schedule updated successfully']);
+}
 
     public function getSchedulesForWeek(Request $request)
     {
