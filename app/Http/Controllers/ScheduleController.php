@@ -15,6 +15,7 @@ use App\Models\Year;
 use App\Models\Module;
 use App\Models\Classroom;
 
+
 class ScheduleController extends Controller
 {
     /**
@@ -40,6 +41,7 @@ class ScheduleController extends Controller
     {
         $validatedData = $request->validated();
         Schedule::create($validatedData);
+        //notify()->success('Insert was successful!');
         return response()->json($validatedData, 200);
     }
 
@@ -178,6 +180,7 @@ class ScheduleController extends Controller
         }
 
         if (empty($events)) {
+            notify()->error('No events found On this Weak');
             return response()->json(['status' => 'empty']);
         }
 
@@ -279,35 +282,7 @@ class ScheduleController extends Controller
         return response()->json(['message' => 'Schedule updated successfully']);
     }
 
-    public function changeEverything(Request $request)
-    {
-        // Validate the request data
-        $request->validate([
-            'schedule_id' => 'required|exists:schedules,schedule_id',
-            'module_name' => 'required|exists:modules,name',
-            'classroom_code' => 'required|exists:classrooms,code',
-            'day_of_week' => 'nullable|string|max:10',
-            'start_time' => 'nullable|date_format:H:i:s',
-            'end_time' => 'nullable|date_format:H:i:s',
-        ]);
-
-        // Find the corresponding IDs based on the module_name and classroom_code
-        $module = Module::where('name', $request->module_name)->first();
-        $classroom = Classroom::where('classroom_code', $request->classroom_code)->first();
-
-        // Find the schedule and update all fields
-        $schedule = Schedule::find($request->schedule_id);
-        $schedule->fill([
-            'module_id' => $module->id,
-            'classroom_id' => $classroom->id,
-            'day_of_week' => $request->day_of_week,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-        ]);
-        $schedule->save();
-
-        return response()->json(['message' => 'Schedule updated successfully']);
-    }
+    
 
     public function getSchedulesForWeek(Request $request)
     {
@@ -363,9 +338,27 @@ class ScheduleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateScheduleRequest $request, Schedule $schedule)
+    public function update(Request $request, Schedule $schedule)
     {
-        //
+        //dd($request->all());
+        $request->validate([
+            'class_id' => 'required',
+            'module_id' => 'required',
+            'classroom_id' => 'required',
+            'teacher_id' => 'required',
+            'semester_id' => 'required',
+            'day_of_week' => 'required',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'year_id' => 'required',
+            'group_id' => 'required',
+        ]);
+
+        // Find the schedule
+        $schedule->update($request->all());
+
+        // Return a response
+        return response()->json(['message' => 'Schedule updated successfully']);
     }
 
     /**

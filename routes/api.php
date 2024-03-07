@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExamController;
-
+use App\Http\Controllers\ScheduleController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -52,3 +52,4 @@ Route::get('/years/show/{year}', [App\Http\Controllers\YearController::class, 's
 Route::get('/schedules/week', [App\Http\Controllers\ScheduleController::class, 'getSchedulesForWeek'])->name('schedules.week');
 Route::post('/schedules/changeDayOfWeek', 'ScheduleController@changeDayOfWeek');
 Route::post('/schedules/changeEverything', 'ScheduleController@changeEverything');
+Route::post('/schedules/{schedule}', [ScheduleController::class, 'update']);
