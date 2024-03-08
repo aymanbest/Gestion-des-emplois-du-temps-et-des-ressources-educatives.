@@ -180,7 +180,7 @@ class ScheduleController extends Controller
         }
 
         if (empty($events)) {
-            notify()->error('No events found On this Weak');
+            // notify()->error('No events found On this Weak');
             return response()->json(['status' => 'empty']);
         }
 
