@@ -53,3 +53,4 @@ Route::get('/schedules/week', [App\Http\Controllers\ScheduleController::class, '
 Route::post('/schedules/changeDayOfWeek', 'ScheduleController@changeDayOfWeek');
 Route::post('/schedules/changeEverything', 'ScheduleController@changeEverything');
 Route::post('/schedules/{schedule}', [ScheduleController::class, 'update']);
+Route::delete('/schedules/delete/{schedule}', [ScheduleController::class, 'destroy']);

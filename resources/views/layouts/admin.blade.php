@@ -26,6 +26,40 @@
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script> -->
+    <style>
+    /* Add some basic styles for the table */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    td {
+        border: 1px solid black;
+        position: relative;
+        width: 140px;
+        height: 89px;
+    }
+    /* Add some styles for the events */
+    .event {
+        /* position: absolute; */
+        left: 0;
+        right: 0;
+        background-color: lightblue;
+        text-align: center;
+        display: flex; /* Stack contents vertically */
+        flex-direction: column; /* Stack contents vertically */
+        align-items: center; /* Center contents horizontally */
+        justify-content: center; /* Center contents vertically */
+        width: 140px;
+        height: 89px; /* Ensure the div has enough space for the text */
+    }
+
+    .active {
+    background-color: #007BFF; /* Change this to the color you want */
+    color: white; /* Change this to the color you want */
+}
+
+</style>
+
 </head>
 
 
