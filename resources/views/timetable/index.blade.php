@@ -187,7 +187,20 @@
                 </div>
             </div>
             <div class="twelve wide column">
-                <div id='calendar'></div>
+                <table id="calendar">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                            <th>Saturday</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -373,210 +386,150 @@
             $('.ui.dropdown #heure_fin').parent('.ui.dropdown').dropdown('set selected', eventData.end_time);
 
             // $(".ui.dropdown").dropdown("refresh"); // Refresh dropdowns
+
+
+
         }
 
-        var calendarEl = null;
 
-        $(document).ready(function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
-                //contentHeight: 'auto',
-                slotDuration: '00:30:00', // 30-minute time slots
-                slotMinTime: '08:30:00', // 08:30 AM
-                slotMaxTime: '18:00:00', // 06:00 PM
-                height: 'auto', // Auto-adjust the height based on content
-                selectable: true,
-                // Enable selection
-                select: function(info) {
-                    // Handle the selection here
-                    var startTime = info.start;
-                    var endTime = info.end;
-                   
 
-                    // Create a new event based on the selection
-                    var newEvent = {
-                        title: 'New Event', // You can set the event title
-                        start: startTime,
-                        end: endTime,
-                        allDay: false // This event is not an all-day event
-                    };
+        function addEvent(event) {
+            // Extract day, time, and title from the event
+            var day = event.day_of_week;
+            var time = event.start_time + ' - ' + event.end_time;
+            var title = event.title;
 
-                    // Render the new event on the calendar
-                    calendar.addEvent(newEvent);
+            // Get the table body
+            var tbody = document.querySelector('#calendar tbody');
 
-                    // Clear the selection after creating the event
-                    calendar.unselect();
-                },
-                editable: false,
-                selectable: true, // Enable event editing (move events)
-                eventDrop: function(info) {
-                    // Handle event drop (when an event is moved)
-                    return false;
-                },
-                allDaySlot: false, // Hide the "all day" section
-                // slotLabelInterval: {
-                //     minutes: 90
-                // },
-                eventClick: function(info) {
-                    console.log(info.event.extendedProps);
-                    captureEvent(info.event.extendedProps);
-                    // if ($('#updatepep').val() == 'true') {
-                    //     if ($('#searchpep').val() == 'true') {
-                    //         $('#searchpep').click();
-                    //     }
-                    //     captureEvent(info.event.extendedProps);
-                    // }
-                },
-                eventContent: function(arg) {
-                    // Create the HTML for the event with styling
-                    var html = `
-        <div class="fc-event-main" style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 0; border-radius: 0; margin: 0;">
-            <div style="font-weight: bold; color: #555; text-align: center;">${arg.event.extendedProps.module_name}</div>
-            <div style="color: #555; text-align: center;">SM0${arg.event.extendedProps.semester_id}</div>
-            <div style="color: #555; text-align: center;">${arg.event.extendedProps.classroom_code}</div>
-            <div style="font-style: italic; color: #555; text-align: center;">${arg.event.extendedProps.teacher_fullname}</div>
-        </div>
-    `;
-
-                    // Return the HTML
-                    return {
-                        html: html
-                    };
-                },
-                // Display labels every 30 minutes
-                slotLabelContent: function(arg) {
-                    // Calculate the end time of the slot
-                    var endTime = new Date(arg.date.getTime() + 30 * 60 * 1000); // Add 30 minutes
-
-                    // Format the label in the desired range format (e.g., "08:30 - 09:00")
-                    var formattedStartTime = arg.date.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
-                    var formattedEndTime = endTime.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
-                    return formattedStartTime + ' - ' + formattedEndTime;
-                },
-                firstDay: 1 // Set Monday (0 = Sunday, 1 = Monday, 2 = Tuesday, etc.)updatepep
+            // Loop through the table rows
+            Array.from(tbody.rows).forEach(function(row) {
+                // Check if this row's time slot matches the event's time
+                if (row.cells[0].textContent === time) {
+                    // Loop through the rest of the cells
+                    for (var i = 1; i < row.cells.length; i++) {
+                        // Check if this cell's day matches the event's day
+                        if (daysOfWeek[i - 1] === day) {
+                            // Add the event to the cell
+                            row.cells[i].textContent = title;
+                        }
+                    }
+                }
             });
+        }
 
-            var searchEnabled = false;
+        var searchEnabled = false;
 
-            // Toggle search functionality
-            $('#toggle-search').click(function() {
-                $(".ui.dropdown").dropdown("clear");
-                searchEnabled = !searchEnabled;
-                // Hide/show fields based on the searchEnabled flag
-                // Replace #fields with the actual selector of your fields
-                $('#semester-field').toggle(!searchEnabled);
-                $('#module-field').toggle(!searchEnabled);
-                // Add other field IDs here
-                $('#salle-field').toggle(!searchEnabled);
-                $('#teacher-type-field').toggle(!searchEnabled);
-                $('#group-field').find('p').text(searchEnabled ? 'GP (OPTIONAL)' : 'Group');
-                $('#heure-demarrage-field').toggle(!searchEnabled);
-                $('#heure-fin-field').toggle(!searchEnabled);
-                $('#seance-jour-field').toggle(!searchEnabled);
-                $('#teacher-field').toggle(!searchEnabled);
-                $('#searchpep').val(searchEnabled ? 'true' : 'false');
+        // Toggle search functionality
+        $('#toggle-search').click(function() {
+            $(".ui.dropdown").dropdown("clear");
+            searchEnabled = !searchEnabled;
+            // Hide/show fields based on the searchEnabled flag
+            // Replace #fields with the actual selector of your fields
+            $('#semester-field').toggle(!searchEnabled);
+            $('#module-field').toggle(!searchEnabled);
+            // Add other field IDs here
+            $('#salle-field').toggle(!searchEnabled);
+            $('#teacher-type-field').toggle(!searchEnabled);
+            $('#group-field').find('p').text(searchEnabled ? 'GP (OPTIONAL)' : 'Group');
+            $('#heure-demarrage-field').toggle(!searchEnabled);
+            $('#heure-fin-field').toggle(!searchEnabled);
+            $('#seance-jour-field').toggle(!searchEnabled);
+            $('#teacher-field').toggle(!searchEnabled);
+            $('#searchpep').val(searchEnabled ? 'true' : 'false');
 
-                if ($("#updatepep").val() == "false") {
-                    $('#session-submit').text(searchEnabled ? 'Search' : 'Valider la séance').toggleClass(
-                        'centered-text', searchEnabled);
+            if ($("#updatepep").val() == "false") {
+                $('#session-submit').text(searchEnabled ? 'Search' : 'Valider la séance').toggleClass(
+                    'centered-text', searchEnabled);
+            }
+
+        });
+
+        // Fetch data from the provided URL
+        $('#session-submit').click(function() {
+            if (searchEnabled) {
+                //e.preventDefault();
+                var classInput = $("#class-input").val();
+                var departmentInput = $("#department-input").val();
+                var selectedDate = $("#datepicker").datepicker("getDate");
+
+                var groupInput = $("#Group-input").val();
+
+
+                // $.get('api/years/show/' + selectedYear, function(data) {
+                var selectedYearID = $("#date-input").val();
+
+                var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' +
+                    departmentInput + '/classes/' + classInput + '/year/' + selectedYearID;
+
+                if (groupInput) {
+                    fetchUrl += '/group/' + groupInput;
                 }
 
-            });
-
-            // Fetch data from the provided URL
-            $('#session-submit').click(function() {
-                if (searchEnabled) {
-                    //e.preventDefault();
-                    var classInput = $("#class-input").val();
-                    var departmentInput = $("#department-input").val();
-                    var selectedDate = $("#datepicker").datepicker("getDate");
-
-                    var groupInput = $("#Group-input").val();
-
-
-                    // $.get('api/years/show/' + selectedYear, function(data) {
-                    var selectedYearID = $("#date-input").val();
-
-                    var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' +
-                        departmentInput + '/classes/' + classInput + '/year/' + selectedYearID;
-
-                    if (groupInput) {
-                        fetchUrl += '/group/' + groupInput;
-                    }
-
-                    // Fetch data from the provided URL
-                    fetch(fetchUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status == "empty") {
-                                notify('No events found On this Weak', 'Try another Groupe',
+                // Fetch data from the provided URL
+                fetch(fetchUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status == "empty") {
+                            notify('No events found On this Weak', 'Try another Groupe',
                                 "negative");
-                            }
+                        }
 
-                            if (!data.hasOwnProperty('status')) {
-                                calendar.removeAllEvents();
-                                notify('successful', 'Found Events');
+                        if (!data.hasOwnProperty('status')) {
+                            calendar.removeAllEvents();
+                            notify('successful', 'Found Events');
 
-                                calendar.addEventSource(data);
-                            }
-                            if ($('#updatepep').val() == 'true') {
-                                toggleSearch();
-                                //captureEvent(data);
-                            }
-                        })
-                        .catch(error => {
-                            console.error(error);
-                            notify('Error fetching data', "error", "negative");
-                        });
-                    // });
-                }
-            });
+                            calendar.addEventSource(data);
+                        }
+                        if ($('#updatepep').val() == 'true') {
+                            toggleSearch();
+                            //captureEvent(data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        notify('Error fetching data', "error", "negative");
+                    });
+                // });
+            }
+        });
 
-            calendar.render();
-            $.get('/api/years', function(data) {
-                var minYear = Infinity;
-                var maxYear = -Infinity;
+        calendar.render();
+        $.get('/api/years', function(data) {
+        var minYear = Infinity;
+        var maxYear = -Infinity;
 
-                for (var i = 0; i < data.length; i++) {
-                    var year = parseInt(data[i].year);
-                    if (year < minYear) minYear = year;
-                    if (year > maxYear) maxYear = year;
-                }
+        for (var i = 0; i < data.length; i++) {
+            var year = parseInt(data[i].year);
+            if (year < minYear) minYear = year;
+            if (year > maxYear) maxYear = year;
+        }
 
-                minYear = new Date(minYear, 0, 1);
-                maxYear = new Date(maxYear, 11, 31);
+        minYear = new Date(minYear, 0, 1);
+        maxYear = new Date(maxYear, 11, 31);
 
-                $("#datepicker").datepicker({
-                    defaultDate: null,
-                    changeMonth: true,
-                    changeYear: true,
-                    minDate: minYear,
-                    maxDate: maxYear,
-                    beforeShowDay: function(date) {
-                        var day = date.getDay();
-                        return [(day == 1)]; // Only allow selection of Mondays
-                    },
-                    onSelect: function(dateText, inst) {
-                        var date = $(this).datepicker('getDate');
-                        var startDate = new Date(date.getFullYear(), date.getMonth(), date
-                            .getDate() - date.getDay() + 1);
-                        var endDate = new Date(date.getFullYear(), date.getMonth(), date
-                            .getDate() - date.getDay() + 7);
-                        calendar.gotoDate(
-                        startDate); // Change the start date of the FullCalendar
-                        calendar.render(); // Render the calendar to display the selected week
-                    }
-                });
-            });
+        $("#datepicker").datepicker({
+            defaultDate: null,
+            changeMonth: true,
+            changeYear: true,
+            minDate: minYear,
+            maxDate: maxYear,
+            beforeShowDay: function(date) {
+                var day = date.getDay();
+                return [(day == 1)]; // Only allow selection of Mondays
+            },
+            onSelect: function(dateText, inst) {
+                var date = $(this).datepicker('getDate');
+                var startDate = new Date(date.getFullYear(), date.getMonth(), date
+                    .getDate() - date.getDay() + 1);
+                var endDate = new Date(date.getFullYear(), date.getMonth(), date
+                    .getDate() - date.getDay() + 7);
+                calendar.gotoDate(
+                    startDate); // Change the start date of the FullCalendar
+                calendar.render(); // Render the calendar to display the selected week
+            }
+        });
+        });
         });
     </script>
 
@@ -589,6 +542,38 @@
 
     <script>
         $(document).ready(function() {
+            function generateCalendar(startTime, endTime, interval) {
+                var daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                var tableBody = document.querySelector('#calendar tbody');
+
+                for (var i = startTime; i < endTime; i += interval) {
+                    var timeSlotStart = formatTime(i);
+                    var timeSlotEnd = formatTime(i + interval);
+                    var row = document.createElement('tr');
+                    var cell = document.createElement('td');
+                    cell.textContent = timeSlotStart + ' - ' + timeSlotEnd;
+                    row.appendChild(cell);
+
+                    for (var j = 0; j < daysOfWeek.length; j++) {
+                        var cell = document.createElement('td');
+                        row.appendChild(cell);
+                    }
+
+                    tableBody.appendChild(row);
+                }
+            }
+
+            function formatTime(time) {
+                var hours = Math.floor(time / 60);
+                var minutes = time % 60;
+                return pad(hours) + ':' + pad(minutes);
+            }
+
+            function pad(number) {
+                return (number < 10 ? '0' : '') + number;
+            }
+
+            generateCalendar(510, 1080, 90);
             // Fetch the teacher types
             $.get('/api/teacher_types', function(data) {
                 var menu = $('#TeacherT-menu');
