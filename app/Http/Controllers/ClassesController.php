@@ -48,6 +48,18 @@ class ClassesController extends Controller
     }
 
     /**
+     * Get the classes by its ID.
+     */
+    public function getById($class_id)
+    {
+        $class = Classes::find($class_id);
+        if (!$class) {
+            return response()->json(['message' => 'Class not found'], 404);
+        }
+        return response()->json($class);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Classes $classes)

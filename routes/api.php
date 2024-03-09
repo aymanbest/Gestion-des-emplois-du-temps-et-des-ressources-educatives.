@@ -29,6 +29,7 @@ Route::get('/departments/show/{id}', [App\Http\Controllers\DepartmentController:
 
 Route::get('/classes', [App\Http\Controllers\ClassesController::class, 'index'])->name('classes');
 Route::get('/classes/show/{department_id}', [App\Http\Controllers\ClassesController::class, 'show'])->name('classe');
+Route::get('/classes/getById/{class_id}', [App\Http\Controllers\ClassesController::class, 'getById'])->name('class');
 
 Route::get('/classrooms', [App\Http\Controllers\ClassroomController::class, 'index'])->name('classrooms');
 Route::get('/classrooms/show/{department_id}/{class_id}', [App\Http\Controllers\ClassroomController::class, 'show'])->name('classroom');
@@ -54,3 +55,4 @@ Route::post('/schedules/changeDayOfWeek', 'ScheduleController@changeDayOfWeek');
 Route::post('/schedules/changeEverything', 'ScheduleController@changeEverything');
 Route::post('/schedules/{schedule}', [ScheduleController::class, 'update']);
 Route::delete('/schedules/delete/{schedule}', [ScheduleController::class, 'destroy']);
+Route::get('/groups/department/{departmentId}/classes/{classId}', [App\Http\Controllers\GroupController::class, 'getGroupsByDepartmentAndClass']);

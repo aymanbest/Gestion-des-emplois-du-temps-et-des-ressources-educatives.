@@ -327,6 +327,8 @@ class ScheduleController extends Controller
         return response()->json($events);
     }
 
+   
+
     /**
      * Show the form for editing the specified resource.
      */

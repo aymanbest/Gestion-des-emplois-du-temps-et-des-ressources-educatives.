@@ -7,9 +7,21 @@
             <div class="fc-header-form">
                 <h2 class="fc-header-form-title" id="fc-header-form-title-dom-1">Time Table</h2>
             </div>
-            <button id="toggle-search">Toggle Search</button>
-            <button id="updates-button">Updates</button>
-            <button id="Insert-button">Insert</button>
+            <div class="switch-button-container">
+            <span>Search:</span>
+            <label class="switch">
+                <input type="checkbox" id="toggle-search">
+                <span class="slider round"></span>
+                
+            </label>
+            <span>Update:</span>
+            <label class="switch">
+                <input type="checkbox" id="updates-button">
+                <span class="slider round"></span>
+                
+            </label>
+            <button class="insertBTN" id="Insert-button">Reset</button>
+            </div>
             <div class="ui hidden divider"></div>
 
             <input type="hidden" id="searchpep" value="false">
@@ -184,7 +196,9 @@
         </div>
     </div>
 </div>
+
 <div class="twelve wide column">
+    <div id="depclassinfo"></div>
     <table id="calendar">
         <thead>
             <tr>
@@ -199,8 +213,6 @@
         </thead>
         <tbody></tbody>
     </table>
-</div>
-</div>
 </div>
 @endsection
 
@@ -238,39 +250,28 @@
         $('#searchpep').val('false');
         $('#updatepep').val('false');
         $("#datepicker").val("");
+        $('#updates-button').prop('checked', false);
+        $('#toggle-search').prop('checked', false);
     });
 
     var updateButton = $('#updates-button');
     var searchButton = $('#toggle-search');
 
-    function updateClasses() {
-        console.log($('#updatepep').val());
-        if ($('#updatepep').val() == 'true') {
-            updateButton.addClass('active');
-            if ($('#searchpep').val() == 'true') {
-                searchButton.removeClass('active');
-            }
-        } else {
-            updateButton.removeClass('active');
-            if ($('#searchpep').val() == 'true') {
-                searchButton.addClass('active');
-            } else {
-                searchButton.removeClass('active');
-            }
-        }
-    }
-
-    $('#updatepep').on('change', updateClasses);
-    $('#searchpep').on('change', updateClasses);
+    
 
 
     var updateEnabled = $('#updatepep').val() == 'true' ? true : false;
 
     $('#updates-button').on('click', function() {
         $(".ui.dropdown").dropdown("clear");
-        updateEnabled = !updateEnabled;
+        updateEnabled = $(this).is(':checked');
         toggleSearch(); // Function to toggle search
         $('#updatepep').val(updateEnabled ? 'true' : 'false').trigger('change');
+
+        if (!updateEnabled && searchEnabled) {
+            console.log('Update and search are off');
+            toggleSearch();
+        }
 
         // Check if update toggle is on
         if ($('#updatepep').val() == 'true' && searchEnabled) {
@@ -439,7 +440,7 @@
         var startTime = event.start_time.slice(0, 5); // Remove seconds from start time
         var endTime = event.end_time.slice(0, 5); // Remove seconds from end time
         var title = event.module_name + "<br>" + event.classroom_code + "<br>" + event.teacher_fullname;
-       
+
         // Get the table body
         var tbody = document.querySelector('#calendar tbody');
 
@@ -473,27 +474,27 @@
                                     var scheduleId = event.schedule_id;
                                     // Make a DELETE request to the API endpoint
                                     fetch('api/schedules/delete/' + scheduleId, {
-                                        method: 'DELETE'
-                                    })
-                                    .then(function(response) {
-                                        // Handle the response
-                                        if (response.ok) {
-                                            // Event deleted successfully
-                                            console.log('Event deleted');
-                                            notify('Success', 'Event deleted');
-                                        } else {
-                                            // Error deleting event
-                                            notify('Error', 'Error deleting event', 'negative');
-                                        }
-                                    })
-                                    .catch(function(error) {
-                                        // Handle any errors
-                                        console.log('Error:', error);
-                                    });
+                                            method: 'DELETE'
+                                        })
+                                        .then(function(response) {
+                                            // Handle the response
+                                            if (response.ok) {
+                                                // Event deleted successfully
+                                                console.log('Event deleted');
+                                                notify('Success', 'Event deleted');
+                                            } else {
+                                                // Error deleting event
+                                                notify('Error', 'Error deleting event', 'negative');
+                                            }
+                                        })
+                                        .catch(function(error) {
+                                            // Handle any errors
+                                            console.log('Error:', error);
+                                        });
                                 }
                             });
                         }
-                        
+
 
                         // Calculate the top and bottom position of the event
                         var startMinutes = timeToMinutes(startTime);
@@ -524,7 +525,8 @@
     // Toggle search functionality
     $('#toggle-search').click(function() {
         $(".ui.dropdown").dropdown("clear");
-        searchEnabled = !searchEnabled;
+        searchEnabled = $(this).is(':checked');
+        //searchEnabled = !searchEnabled;
         // Hide/show fields based on the searchEnabled flag
         // Replace #fields with the actual selector of your fields
         $('#semester-field').toggle(!searchEnabled);
@@ -532,7 +534,7 @@
         // Add other field IDs here
         $('#salle-field').toggle(!searchEnabled);
         $('#teacher-type-field').toggle(!searchEnabled);
-        $('#group-field').find('p').text(searchEnabled ? 'GP (OPTIONAL)' : 'Group');
+        $('#group-field').find('p').text(searchEnabled ? 'GP (W Schedule)' : 'Group');
         $('#heure-demarrage-field').toggle(!searchEnabled);
         $('#heure-fin-field').toggle(!searchEnabled);
         $('#seance-jour-field').toggle(!searchEnabled);
@@ -545,54 +547,64 @@
 
     });
 
+    function searchAndDisplayEvents() {
+        var classInput = $("#class-input").val();
+        var departmentInput = $("#department-input").val();
+        var groupInput = $("#Group-input").val();
+        var selectedYearID = $("#date-input").val();
+
+        var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' +
+            departmentInput + '/classes/' + classInput + '/year/' + selectedYearID + '/group/' + groupInput;
+
+        if (!groupInput) {
+            notify('No Group Selected', 'Please select a group', 'negative');
+            return;
+        }
+
+        // Fetch data from the provided URL
+        fetch(fetchUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == "empty") {
+                    notify('No events found On this Weak', 'Try another Groupe', "negative");
+                }
+
+                clearEvents();
+
+                if (!data.hasOwnProperty('status')) {
+                    //calendar.removeAllEvents();
+                    notify('successful', 'Found Events');
+                    data.forEach(function(event) {
+                        addEvent(event);
+                    });
+                }
+                if ($('#updatepep').val() == 'true' && searchEnabled) {
+                        toggleSearch();
+                        //captureEvent(data);
+                    }
+
+
+                $.get('http://127.0.0.1:8000/api/departments/show/' + departmentInput, function(departmentData) {
+                    // Fetch the class name
+                    $.get('http://127.0.0.1:8000/api/classes/getById/' + classInput, function(classData) {
+                        // Fill the #depclassinfo div with the fetched department and class names, and the selected group
+                        var depClassInfo = $('#depclassinfo');
+                        depClassInfo.empty(); // Clear the div before adding new items
+                        var info = '<p>Department: ' + departmentData.department_code + '</p>' +
+                            '<p>Class: ' + classData.name + '</p>' +
+                            '<p>Group: ' + groupInput + '</p>';
+
+                        depClassInfo.prepend(info);
+                    });
+                });
+            });
+    }
+
     // Fetch data from the provided URL
     $('#session-submit').click(function() {
         if (searchEnabled) {
             //e.preventDefault();
-            var classInput = $("#class-input").val();
-            var departmentInput = $("#department-input").val();
-            var selectedDate = $("#datepicker").datepicker("getDate");
-
-            var groupInput = $("#Group-input").val();
-
-
-            // $.get('api/years/show/' + selectedYear, function(data) {
-            var selectedYearID = $("#date-input").val();
-
-            var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' +
-                departmentInput + '/classes/' + classInput + '/year/' + selectedYearID;
-
-            if (groupInput) {
-                fetchUrl += '/group/' + groupInput;
-            }
-
-            // Fetch data from the provided URL
-            fetch(fetchUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status == "empty") {
-                        notify('No events found On this Weak', 'Try another Groupe',"negative");
-                    }
-
-                    clearEvents();
-
-                    if (!data.hasOwnProperty('status')) {
-                        //calendar.removeAllEvents();
-                        notify('successful', 'Found Events');
-                        data.forEach(function(event) {
-                            addEvent(event);
-                        });
-                    }
-                    if ($('#updatepep').val() == 'true') {
-                        toggleSearch();
-                        //captureEvent(data);
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                    notify('Error fetching data', "error", "negative");
-                });
-            // });
+            searchAndDisplayEvents();
         }
     });
 
@@ -684,8 +696,10 @@
 
         // Fetch the classrooms for the selected department and class
         $('#department-input, #class-input').change(function() {
+            var searchpep = $('#searchpep').val() == 'true' ? true : false;
             var departmentId = $('#department-input').val();
             var classId = $('#class-input').val();
+            var groupMenu = $('#Group-menu');
 
             if (departmentId && classId) {
                 // Clear the salle dropdown menu
@@ -697,6 +711,23 @@
                         menu.append('<div class="item" data-value="' + classroom
                             .classroom_id + '">' + classroom.name + '</div>');
                     });
+                });
+            }
+            if (searchpep) {
+                $.get('http://127.0.0.1:8000/api/groups/department/' + departmentId + '/classes/' + classId, function(data) {
+                    groupMenu.empty(); // Clear the menu before adding new items
+                    for (var i = 0; i < data.length; i++) {
+                        groupMenu.append('<div class="item" data-value="' + data[i].group_id + '">' + data[i].group_code + '</div>');
+                    }
+                    $('#Group-input').parent().dropdown();
+                });
+            } else {
+                $.get('/api/groups', function(data) {
+                    groupMenu.empty(); // Clear the menu before adding new items
+                    for (var i = 0; i < data.length; i++) {
+                        groupMenu.append('<div class="item" data-value="' + data[i].group_id + '">' + data[i].group_code + '</div>');
+                    }
+                    $('#Group-input').parent().dropdown();
                 });
             }
         });
@@ -718,17 +749,6 @@
         });
     });
 
-
-    $.get('/api/groups', function(data) {
-        var groupMenu = $('#Group-menu');
-        for (var i = 0; i < data.length; i++) {
-            groupMenu.append('<div class="item" data-value="' + data[i].group_id + '">' + data[i].group_code +
-                '</div>');
-        }
-        $('#Group-input').parent().dropdown();
-
-
-    });
 
 
     // var dropdowns = ["group-input", "class-input", "module-input", "teacher-input", "Salle-input", "day-of-week-input"];
@@ -852,8 +872,8 @@
                 // Check each schedule for conflicts
                 $.each(schedules, function(index, schedule) {
                     if (updatepep && schedulekey == schedule.schedule_id) {
-                    return true; // continue to next iteration
-                }
+                        return true; // continue to next iteration
+                    }
 
                     if ($("#Salle-input").val() == schedule.classroom_id &&
                         $("#heure_demarrage").val() == schedule.start_time &&
@@ -925,6 +945,7 @@
                     } else {
                         // Request was successful, process the response data
                         notify($("#updatepep").val() == "true" ? 'Update' : "Insert", 'successful');
+                        searchAndDisplayEvents();
                     }
                 }).fail(function(xhr, status, error) {
                     // Handle other errors (e.g., 500 Internal Server Error)
