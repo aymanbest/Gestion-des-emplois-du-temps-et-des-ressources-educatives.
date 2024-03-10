@@ -56,3 +56,7 @@ Route::post('/schedules/changeEverything', 'ScheduleController@changeEverything'
 Route::post('/schedules/{schedule}', [ScheduleController::class, 'update']);
 Route::delete('/schedules/delete/{schedule}', [ScheduleController::class, 'destroy']);
 Route::get('/groups/department/{departmentId}/classes/{classId}', [App\Http\Controllers\GroupController::class, 'getGroupsByDepartmentAndClass']);
+
+Route::get('/raport/teacher/{teacherId}', [ScheduleController::class, 'getTeacherReport']);
+
+Route::view('/raport', 'timetable.raport');

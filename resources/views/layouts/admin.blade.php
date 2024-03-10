@@ -159,7 +159,7 @@
             font-family: "Amazon Ember", sans-serif;
             font-size: 13px;
             line-height: 29px;
-            
+
             position: relative;
             text-align: center;
             text-decoration: none;
@@ -169,6 +169,42 @@
             vertical-align: middle;
             width: 50px;
         }
+
+        .teacher-name {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 1em;
+        }
+
+        .report-card {
+            border: 1px solid #ccc;
+            padding: 1em;
+            margin-bottom: 1em;
+        }
+
+        .department-name {
+            font-size: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .class-name {
+            font-size: 1.2em;
+            margin-bottom: 1em;
+        }
+
+        .card {
+            margin-bottom: 0.5em;
+        }
+        .report-card-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 20px;
+}
+@media (max-width: 600px) {
+    .report-card-container {
+        grid-template-columns: 1fr;
+    }
+}
     </style>
 
 </head>

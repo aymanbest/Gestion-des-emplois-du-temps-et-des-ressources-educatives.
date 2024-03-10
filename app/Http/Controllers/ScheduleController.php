@@ -188,6 +188,31 @@ class ScheduleController extends Controller
     }
 
 
+    public function getTeacherReport($teacher_id)
+    {
+        $report = DB::table('schedules')
+            ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
+            ->join('groups', 'schedules.group_id', '=', 'groups.group_id')
+            ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
+            ->join('departments', 'classes.department_id', '=', 'departments.department_id')
+            ->select(
+                'teachers.fullname as teacher_name',
+                'groups.group_id',
+                'classes.name as class_name',
+                'departments.name as department_name',
+                DB::raw('SUM(TIMESTAMPDIFF(MINUTE, schedules.start_time, schedules.end_time)) as total_duration')
+            )
+            ->where('teachers.teacher_id', '=', $teacher_id)
+            ->groupBy('classes.name', 'departments.name', 'teachers.fullname', 'groups.group_id')
+            ->groupBy('departments.name', 'classes.name') // Add grouping by department and class
+            ->get();
+
+        return response()->json($report);
+
+        return response()->json($report);
+    }
+
+
     // public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id = 1, $group_id)
     // {
     // $schedules = DB::table('schedules')
@@ -282,7 +307,7 @@ class ScheduleController extends Controller
         return response()->json(['message' => 'Schedule updated successfully']);
     }
 
-    
+
 
     public function getSchedulesForWeek(Request $request)
     {
@@ -327,7 +352,7 @@ class ScheduleController extends Controller
         return response()->json($events);
     }
 
-   
+
 
     /**
      * Show the form for editing the specified resource.
