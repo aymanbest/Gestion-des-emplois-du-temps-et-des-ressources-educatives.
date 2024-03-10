@@ -59,4 +59,3 @@ Route::get('/groups/department/{departmentId}/classes/{classId}', [App\Http\Cont
 
 Route::get('/raport/teacher/{teacherId}', [ScheduleController::class, 'getTeacherReport']);
 
-Route::view('/raport', 'timetable.raport');

@@ -36,7 +36,7 @@
         </div>
         <div class="twelve wide column">
             <div id="raport"></div>
-
+            <div id="total-duration"></div>
         </div>
     </div>
 </div>
@@ -51,11 +51,18 @@ $(document).ready(function() {
         e.preventDefault();
 
         var teacherId = $('#teacher-input').val();
+        var totalDuration = 0;
 
         $.get('raport/teacher/' + teacherId, function(data) {
             var reportCard = '';
             var teacherName = '';
             var groupedData = {};
+
+            function formatDuration(minutes) {
+                var hours = Math.floor(minutes / 60);
+                var remainingMinutes = minutes % 60;
+                return hours + ' h ' + remainingMinutes + ' min';
+            }
 
             // Group data by department_name and class_name
             $.each(data, function(index, report) {
@@ -65,13 +72,16 @@ $(document).ready(function() {
                         teacher_name: report.teacher_name,
                         department_name: report.department_name,
                         class_name: report.class_name,
-                        groups: []
+                        groups: [],
+                        total_duration: 0
                     };
                 }
                 groupedData[key].groups.push({
                     group_id: report.group_id,
-                    total_duration: report.total_duration
+                    total_duration: parseInt(report.total_duration)
                 });
+                groupedData[key].total_duration += parseInt(report.total_duration);
+                totalDuration += parseInt(report.total_duration); 
             });
 
             // Generate report card
@@ -82,7 +92,7 @@ $(document).ready(function() {
                 }
                 
                 reportCard += '<div class="report-card">';
-                reportCard += '<h1 class="department-name">' + report.department_name + '</h1>';
+                reportCard += '<h1 class="department-name">' + report.department_name + ' - Total Duration: ' + report.total_duration + ' min ('+ formatDuration(report.total_duration) + ')' + '</h1>';
                 reportCard += '<p class="class-name">' + report.class_name + '</p>';
                 
                 var sameDurationGroups = {};
@@ -95,9 +105,15 @@ $(document).ready(function() {
 
                 
                 $.each(sameDurationGroups, function(duration, groups) {
+                    var totalGroupDuration = duration * groups.length;
                     reportCard += '<div class="card">';
                     reportCard += '<p>Group : ' + groups.join(' & ') + '</p>';
-                    reportCard += '<p>Total Duration: ' + duration + ' min</p>';
+                    if (groups.length > 1) {
+                        reportCard += '<p>Total Duration: ' + duration + ' min ('+ formatDuration(duration) + ')' + ' x ' + groups.length + ' = ' + totalGroupDuration  + ' min ('+ formatDuration(totalGroupDuration) + ')' + '</p>';
+                    } else {
+                        reportCard += '<p>Duration: ' + duration + ' min ('+ formatDuration(duration) + ')' + '</p>';
+                    }
+                    
                     reportCard += '</div>';
                 });
 
@@ -107,9 +123,11 @@ $(document).ready(function() {
             reportCard += '</div>';
 
             $('#raport').html(teacherName + reportCard);
+            $('#total-duration').text('Total Duration for All Classes and Departments: ' + totalDuration + ' min (' + formatDuration(totalDuration) + ')'); // Display overall total duration
         });
     });
 });
+
 $(document).ready(function() {
     $.get('/api/teacher_types', function(data) {
         var menu = $('#TeacherT-menu');

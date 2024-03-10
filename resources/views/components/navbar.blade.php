@@ -1,7 +1,13 @@
 <div class="ui small menu">
     <div class="ui container">
-        <a class="active item">
+        <a href="{{route('home')}}" class="active item">
             Home
+        </a>
+        <a href="{{route('timetable')}}" class="active item">
+            TimeTable
+        </a>
+        <a href="{{route('raport')}}" class="active item">
+            Teachers Raport
         </a>
         @if(Auth::user())
             <a class="item">
