@@ -27,6 +27,9 @@
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script> -->
     <style>
+        #calendar {
+            direction: rtl;
+        }
         /* Add some basic styles for the table */
         table {
             width: 100%;

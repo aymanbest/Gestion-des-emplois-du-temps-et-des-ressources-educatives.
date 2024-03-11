@@ -207,7 +207,11 @@ class ScheduleController extends Controller
             ->groupBy('departments.name', 'classes.name') // Add grouping by department and class
             ->get();
 
-        return response()->json($report);
+            if ($report->isEmpty()) {
+               
+                return response()->json(['status' => 'empty']);
+            }
+    
 
         return response()->json($report);
     }
