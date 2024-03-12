@@ -12,6 +12,7 @@
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.2",
         "livewire/livewire": "^2.12",
+        "maatwebsite/excel": "^3.1",
         "mckenziearts/laravel-notify": "^2.4"
     },
     "require-dev": {

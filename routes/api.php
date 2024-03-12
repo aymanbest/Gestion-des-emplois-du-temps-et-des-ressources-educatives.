@@ -58,4 +58,4 @@ Route::delete('/schedules/delete/{schedule}', [ScheduleController::class, 'destr
 Route::get('/groups/department/{departmentId}/classes/{classId}', [App\Http\Controllers\GroupController::class, 'getGroupsByDepartmentAndClass']);
 
 Route::get('/raport/teacher/{teacherId}', [ScheduleController::class, 'getTeacherReport']);
-
+Route::get('/export/department/{department_id}/classes/{class_id}/year/{year_id}/group/{group_id}', [App\Http\Controllers\ScheduleController::class, 'generateUpdatedExcel'])->name('generateUpdatedExcel');
