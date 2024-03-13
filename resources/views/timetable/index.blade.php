@@ -22,6 +22,8 @@
                 </label>
                 <button class="insertBTN" id="Insert-button">Reset</button>
             </div>
+
+            <button id="settings">Settings</button>
             <div class="ui hidden divider"></div>
 
             <input type="hidden" id="searchpep" value="false">
@@ -660,12 +662,16 @@
 </script>
 
 <script>
+    
     $(document).ready(function() {
         function generateCalendar() {
             var daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            var timeSlots = ['08:30 - 10:00', '10:00 - 11:30', '11:30 - 13:00', '13:30 - 15:00', '15:00 - 16:30', '16:30 - 18:00'];
+            var timeSlots = JSON.parse(localStorage.getItem('timeSlots')) || ['08:30 - 10:00', '10:00 - 11:30', '11:30 - 13:00', '13:30 - 15:00', '15:00 - 16:30', '16:30 - 18:00'];
             var tableBody = document.querySelector('#calendar tbody');
             var tableHead = document.querySelector('#calendar thead');
+
+            tableBody.innerHTML = '';
+            tableHead.innerHTML = '';
 
             // Create a row for the time slots and append it to the table head
             var timeRow = document.createElement('tr');
@@ -696,6 +702,24 @@
                 tableBody.appendChild(row);
             }
         }
+
+        document.getElementById('settings').addEventListener('click', function() {
+        var newTimeSlotDuration = prompt('Please enter the new time slot duration in hours. For example: "2" for 2 hours');
+        if (newTimeSlotDuration) {
+            var startTime = 8.5; // Start time in hours
+            var endTime = 18; 
+            var newTimeSlots = [];
+            for (var time = startTime; time < endTime; time += parseFloat(newTimeSlotDuration)) {
+                var startHour = Math.floor(time);
+                var startMinutes = (time % 1) * 60;
+                var endHour = Math.floor(time + parseFloat(newTimeSlotDuration));
+                var endMinutes = ((time + parseFloat(newTimeSlotDuration)) % 1) * 60;
+                newTimeSlots.push(`${startHour}:${startMinutes < 10 ? '0' : ''}${startMinutes} - ${endHour}:${endMinutes < 10 ? '0' : ''}${endMinutes}`);
+            }
+            localStorage.setItem('timeSlots', JSON.stringify(newTimeSlots));
+            generateCalendar();
+        }
+    });
 
         function formatTime(time) {
             var hours = Math.floor(time / 60);
