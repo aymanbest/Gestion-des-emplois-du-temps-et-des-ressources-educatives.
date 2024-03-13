@@ -15,6 +15,7 @@ use App\Models\Year;
 use App\Models\Module;
 use App\Models\Classroom;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Models\Reservation;
 
 
 class ScheduleController extends Controller
@@ -189,28 +190,45 @@ class ScheduleController extends Controller
     }
 
     public function getSchedulesByTeacherId($teacher_id)
-{
-    $schedules = DB::table('schedules')
-        ->join('modules', 'schedules.module_id', '=', 'modules.module_id')
-        ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id')
-        ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
-        ->join('teacher_types', 'teachers.teacher_type_id', '=', 'teacher_types.teacher_type_id')
-        ->join('semesters', 'schedules.semester_id', '=', 'semesters.semester_id')
-        ->where('schedules.teacher_id', '=', $teacher_id)
-        ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname', 'teacher_types.teacher_type_id')
-        ->get();
+    {
+        $schedules = DB::table('schedules')
+            ->join('modules', 'schedules.module_id', '=', 'modules.module_id')
+            ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id')
+            ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
+            ->join('teacher_types', 'teachers.teacher_type_id', '=', 'teacher_types.teacher_type_id')
+            ->join('semesters', 'schedules.semester_id', '=', 'semesters.semester_id')
+            ->where('schedules.teacher_id', '=', $teacher_id)
+            ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname', 'teacher_types.teacher_type_id')
+            ->get();
 
 
         if (empty($schedules)) {
-           
+
             return response()->json(['status' => 'empty']);
         }
 
-    return response()->json(['status' => 'success', 'events' => $schedules]);
-}
+        return response()->json(['status' => 'success', 'events' => $schedules]);
+    }
 
 
-    public function generateUpdatedExcel($department_id, $class_id, $year_id, $group_id, $templatePath = 'templates/emp.xls')
+    public function generateUpdatedExcel($teacher_id, $templatePath = 'templates/emp_teacher.xls')
+    {
+        $response = $this->getSchedulesByTeacherId($teacher_id);
+
+        if ($response->getData(true)['status'] !== 'success') {
+
+            return $response;
+        }
+
+        $events = $response->getData(true)['events'];
+        $namexls = 'Teacher' . $teacher_id . '.xlsx';
+
+        $this->updateExcelTemplate($templatePath, $events, $namexls);
+
+        return response()->download($namexls)->deleteFileAfterSend(true);
+    }
+
+    public function generateUpdatedExcelTeachers($department_id, $class_id, $year_id, $group_id, $templatePath = 'templates/emp.xls')
     {
         $response = $this->showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $group_id);
 
@@ -256,7 +274,7 @@ class ScheduleController extends Controller
                         sort($coordinates);
                         //dd($coordinates);
                         $startCoordinate = reset($coordinates);
-                       // dd($startCoordinate);
+                        // dd($startCoordinate);
                         $endCoordinate = end($coordinates);
                         $worksheet->mergeCells($startCoordinate . ':' . $endCoordinate);
                         $worksheet->setCellValue($startCoordinate, $cellValue);
@@ -265,7 +283,7 @@ class ScheduleController extends Controller
             }
         }
 
-        
+
 
         // Save the modified Excel template
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -502,5 +520,42 @@ class ScheduleController extends Controller
         $schedule->delete();
 
         return response()->json(['message' => 'Schedule deleted successfully']);
+    }
+
+    public function reserveClass(Request $request)
+    {
+        $classroom_id = $request->input('classroom_id');
+        $day_of_week = $request->input('day_of_week');
+        $teacher_id = $request->input('teacher_id');
+        $start_time = $request->input('start_time');
+        $end_time = $request->input('end_time');
+
+        $schedule = Schedule::where('classroom_id', $classroom_id)
+            ->where('day_of_week', $day_of_week)
+            ->where('start_time', $start_time)
+            ->where('end_time', $end_time)
+            ->first();
+
+        if ($schedule && $schedule->isFull()) {
+            $group = $schedule->group;
+
+            return response()->json([
+                'status' => 'full',
+                'message' => 'The schedule is full. The group filling the schedule is: ' . $group->name,
+                'group' => $group
+            ]);
+        }
+
+        $reservation = new Reservation;
+        $reservation->classroom_id = $classroom_id;
+        $reservation->teacher_id = $teacher_id; 
+        $reservation->schedule_id = $schedule->id;
+        $reservation->save();
+
+        // Return a success message
+        return response()->json([
+            'status' => 'success',
+            'message' => 'The class has been reserved successfully.'
+        ]);
     }
 }

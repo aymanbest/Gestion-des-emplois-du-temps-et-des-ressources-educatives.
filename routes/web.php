@@ -18,7 +18,7 @@ Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index']);
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -30,3 +30,4 @@ Route::get('/timetable', function() {
 })->name('timetable');
 
 Route::view('/raport', 'timetable.raport')->name('raport');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
