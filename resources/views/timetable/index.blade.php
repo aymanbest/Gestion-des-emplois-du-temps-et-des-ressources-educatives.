@@ -132,7 +132,6 @@
                                     <div class="default text">Jourséance</div>
                                     <i class="dropdown icon"></i>
                                     <div class="menu">
-
                                         @php
                                         $days = [
                                         'Monday' => 'الاثنين',
