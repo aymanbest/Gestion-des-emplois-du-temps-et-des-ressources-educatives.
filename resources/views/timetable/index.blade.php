@@ -214,7 +214,7 @@
 @endsection
 
 @push('calendar-scripts')
-<!-- Initialize FullCalendar using jQuery -->
+
 
 <script>
     function notify(header, message, type = 'success', timeout = 3000) {

@@ -188,6 +188,27 @@ class ScheduleController extends Controller
         return response()->json(['status' => 'success', 'events' => $events]);
     }
 
+    public function getSchedulesByTeacherId($teacher_id)
+{
+    $schedules = DB::table('schedules')
+        ->join('modules', 'schedules.module_id', '=', 'modules.module_id')
+        ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id')
+        ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
+        ->join('teacher_types', 'teachers.teacher_type_id', '=', 'teacher_types.teacher_type_id')
+        ->join('semesters', 'schedules.semester_id', '=', 'semesters.semester_id')
+        ->where('schedules.teacher_id', '=', $teacher_id)
+        ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname', 'teacher_types.teacher_type_id')
+        ->get();
+
+
+        if (empty($schedules)) {
+           
+            return response()->json(['status' => 'empty']);
+        }
+
+    return response()->json(['status' => 'success', 'events' => $schedules]);
+}
+
 
     public function generateUpdatedExcel($department_id, $class_id, $year_id, $group_id, $templatePath = 'templates/emp.xls')
     {
