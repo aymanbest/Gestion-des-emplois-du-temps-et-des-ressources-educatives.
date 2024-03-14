@@ -211,7 +211,7 @@ class ScheduleController extends Controller
     }
 
 
-    public function generateUpdatedExcel($teacher_id, $templatePath = 'templates/emp_teacher.xls')
+    public function generateUpdatedExcelTeachers($teacher_id, $templatePath = 'templates/emp_teacher.xls')
     {
         $response = $this->getSchedulesByTeacherId($teacher_id);
 
@@ -228,7 +228,7 @@ class ScheduleController extends Controller
         return response()->download($namexls)->deleteFileAfterSend(true);
     }
 
-    public function generateUpdatedExcelTeachers($department_id, $class_id, $year_id, $group_id, $templatePath = 'templates/emp.xls')
+    public function generateUpdatedExcel($department_id, $class_id, $year_id, $group_id, $templatePath = 'templates/emp.xls')
     {
         $response = $this->showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $group_id);
 
@@ -270,7 +270,9 @@ class ScheduleController extends Controller
 
                 foreach ($dayEvents as $event) {
                     foreach ($cellCoordinates as $element => $coordinates) {
-                        $cellValue = $event[$element];
+                        if (isset($event[$element])) {
+                            $cellValue = $event[$element];
+                        }
                         sort($coordinates);
                         //dd($coordinates);
                         $startCoordinate = reset($coordinates);

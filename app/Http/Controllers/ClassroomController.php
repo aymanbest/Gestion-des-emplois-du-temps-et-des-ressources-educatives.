@@ -51,6 +51,25 @@ class ClassroomController extends Controller
         return response()->json($result);
     }
 
+    public function getAvailableClassrooms($dayOfWeek, $startTime, $endTime)
+    {
+        $classrooms = Classroom::whereNotIn('classroom_id', function ($query) use ($dayOfWeek, $startTime, $endTime) {
+            $query->select('classroom_id')
+                ->from('schedules')
+                ->where('day_of_week', $dayOfWeek)
+                ->where(function ($query) use ($startTime, $endTime) {
+                    $query->whereBetween('start_time', [$startTime, $endTime])
+                        ->orWhereBetween('end_time', [$startTime, $endTime]);
+                });
+        })->get();
+
+        return response()->json($classrooms);
+    }
+
+    public function testing(){
+        dd($this->getAvailableClassrooms('Monday', '08:00:00', '10:00:00'));
+    }
+
     /**
      * Show the form for editing the specified resource.
      */

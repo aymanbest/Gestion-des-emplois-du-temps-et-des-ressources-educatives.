@@ -25,11 +25,14 @@
     {{-- <link rel="stylesheet" href="/resources/demos/style.css"> --}}
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    
+
     <!-- <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script> -->
     <style>
         #calendar {
             direction: rtl;
         }
+
         /* Add some basic styles for the table */
         table {
             width: 100%;
@@ -81,97 +84,7 @@
             /* Add a gap between the div and the table */
         }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 51px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 27px;
-            width: 27px;
-            left: -2px;
-            /* Adjust the left position */
-            bottom: -2px;
-            /* Adjust the bottom position */
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-
-        .slider span {
-            position: absolute;
-            top: -20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-        }
-
-        input:checked+.slider {
-            background-color: #2196F3;
-        }
-
-        input:focus+.slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
-
-        input:checked+.slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-
-        .slider.round {
-            border-radius: 34px;
-        }
-
-        .slider.round:before {
-            border-radius: 50%;
-        }
-
-        .insertBTN {
-            background-color: #fff;
-            border: 1px solid #d5d9d9;
-            border-radius: 8px;
-            box-shadow: rgba(213, 217, 217, .5) 0 2px 5px 0;
-            box-sizing: border-box;
-            color: #0f1111;
-            cursor: pointer;
-            display: inline-block;
-            font-family: "Amazon Ember", sans-serif;
-            font-size: 13px;
-            line-height: 29px;
-
-            position: relative;
-            text-align: center;
-            text-decoration: none;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            vertical-align: middle;
-            width: 50px;
-        }
+        
 
         .teacher-name {
             text-align: center;
@@ -198,15 +111,21 @@
         .card {
             margin-bottom: 0.5em;
         }
+
         .report-card-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 20px;
-}
-@media (max-width: 600px) {
-    .report-card-container {
-        grid-template-columns: 1fr;
-    }
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .report-card-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .ui.grid.buttonat > .row {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
 }
     </style>
 
@@ -226,7 +145,9 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales-all.min.js"></script>
     <script src="https://momentjs.com/downloads/moment-with-locales.js"></script>
-
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js">
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     @stack('calendar-scripts')

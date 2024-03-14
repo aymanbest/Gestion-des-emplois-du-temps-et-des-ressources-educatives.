@@ -29,5 +29,7 @@ Route::get('/timetable', function() {
     return view('timetable.index');
 })->name('timetable');
 
+Route::view('/reserve', 'timetable.reserve')->name('reserve');
+
 Route::view('/raport', 'timetable.raport')->name('raport');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
