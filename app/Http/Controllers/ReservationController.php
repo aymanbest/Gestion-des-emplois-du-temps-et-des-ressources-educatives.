@@ -12,7 +12,7 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        //
+        return Reservation::with(['teacher', 'classroom'])->get();
     }
 
     /**

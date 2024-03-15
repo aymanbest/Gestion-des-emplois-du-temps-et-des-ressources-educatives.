@@ -16,6 +16,7 @@ use App\Models\Module;
 use App\Models\Classroom;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Reservation;
+use Illuminate\Support\Carbon;
 
 
 class ScheduleController extends Controller
@@ -530,6 +531,8 @@ class ScheduleController extends Controller
         $day_of_week = $request->input('day_of_week');
         $teacher_id = $request->input('teacher_id');
         $start_time = $request->input('start_time');
+        $date = $request->input('date');
+        $date = Carbon::createFromFormat('m/d/Y h:i A', $date)->format('Y-m-d H:i:s');
         $end_time = $request->input('end_time');
 
         $schedule = Schedule::where('classroom_id', $classroom_id)
@@ -538,7 +541,7 @@ class ScheduleController extends Controller
             ->where('end_time', $end_time)
             ->first();
 
-        if ($schedule && $schedule->isFull()) {
+        if ($schedule && $schedule->isFull() && !$request->input('force')) {
             $group = $schedule->group;
 
             return response()->json([
@@ -551,10 +554,9 @@ class ScheduleController extends Controller
         $reservation = new Reservation;
         $reservation->classroom_id = $classroom_id;
         $reservation->teacher_id = $teacher_id; 
-        $reservation->schedule_id = $schedule->id;
+        $reservation->date = $date;
         $reservation->save();
 
-        // Return a success message
         return response()->json([
             'status' => 'success',
             'message' => 'The class has been reserved successfully.'

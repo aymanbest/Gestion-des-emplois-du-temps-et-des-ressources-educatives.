@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('classroom_id');
             $table->unsignedBigInteger('teacher_id');
-            $table->unsignedBigInteger('schedule_id');
             $table->string('day_of_week', 10)->nullable();
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
@@ -24,7 +23,6 @@ return new class extends Migration
     
             $table->foreign('classroom_id')->references('classroom_id')->on('classrooms')->onDelete('cascade')->onUpdate('cascade');;
             $table->foreign('teacher_id')->references('teacher_id')->on('teachers')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('schedule_id')->references('schedule_id')->on('schedules')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

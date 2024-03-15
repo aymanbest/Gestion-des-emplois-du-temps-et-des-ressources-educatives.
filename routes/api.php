@@ -62,3 +62,6 @@ Route::get('/export/department/{department_id}/classes/{class_id}/year/{year_id}
 Route::get('/schedules/teacher/{teacher_id}', [ScheduleController::class, 'getSchedulesByTeacherId'])->name('getSchedulesByTeacherId');
 Route::get('/export/teacher/{teacher_id}', [App\Http\Controllers\ScheduleController::class, 'generateUpdatedExcelTeachers'])->name('generateUpdatedExcelTeachers');
 Route::get('/test', [App\Http\Controllers\ClassroomController::class, 'testing'])->name('testing');
+Route::post('/avClasses', [App\Http\Controllers\ClassroomController::class, 'getAvailableClassrooms'])->name('getAvailableClassrooms');
+Route::post('/reserveClass', [App\Http\Controllers\ScheduleController::class, 'reserveClass'])->name('reserveClass');
+Route::get('/getReservations', [App\Http\Controllers\ReservationController::class, 'index'])->name('index');

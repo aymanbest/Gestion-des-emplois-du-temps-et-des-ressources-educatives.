@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Classroom;
 use App\Http\Requests\StoreClassroomRequest;
 use App\Http\Requests\UpdateClassroomRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ClassroomController extends Controller
@@ -51,8 +52,15 @@ class ClassroomController extends Controller
         return response()->json($result);
     }
 
-    public function getAvailableClassrooms($dayOfWeek, $startTime, $endTime)
+    public function getAvailableClassrooms(Request $request)
     {
+
+        // dd($request->all());
+
+        $dayOfWeek = $request->dayOfWeek;
+        $startTime = $request->startTime;
+        $endTime = $request->endTime;
+
         $classrooms = Classroom::whereNotIn('classroom_id', function ($query) use ($dayOfWeek, $startTime, $endTime) {
             $query->select('classroom_id')
                 ->from('schedules')
@@ -64,11 +72,9 @@ class ClassroomController extends Controller
         })->get();
 
         return response()->json($classrooms);
-    }
 
-    public function testing(){
-        dd($this->getAvailableClassrooms('Monday', '08:00:00', '10:00:00'));
     }
+    
 
     /**
      * Show the form for editing the specified resource.

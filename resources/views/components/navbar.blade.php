@@ -9,6 +9,9 @@
         <a href="{{route('raport')}}" class="active item">
             Teachers Raport
         </a>
+        <a href="{{route('reserve')}}" class="active item">
+            Reserve Classroom
+        </a>
         @if(Auth::user())
             <a class="item">
                 Hi, {{Auth::user()->name}}

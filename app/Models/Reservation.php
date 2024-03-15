@@ -11,18 +11,13 @@ class Reservation extends Model
 
     protected $fillable = ['classroom_id', 'teacher_id', 'schedule_id'];
 
-    public function classroom()
-    {
-        return $this->belongsTo(Classroom::class);
-    }
-
     public function teacher()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo('App\Models\Teacher', 'teacher_id', 'teacher_id');
     }
 
-    public function schedule()
+    public function classroom()
     {
-        return $this->belongsTo(Schedule::class);
+        return $this->belongsTo('App\Models\Classroom', 'classroom_id', 'classroom_id');
     }
 }

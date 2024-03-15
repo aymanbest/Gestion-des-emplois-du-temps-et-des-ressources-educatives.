@@ -42,7 +42,7 @@
         td {
             border: 1px solid black;
             position: relative;
-            width: 140px;
+            width: 142px;
             height: 89px;
         }
 
@@ -60,10 +60,7 @@
             align-items: center;
             /* Center contents horizontally */
             justify-content: center;
-            /* Center contents vertically */
-            width: 140px;
-            height: 89px;
-            /* Ensure the div has enough space for the text */
+
         }
 
         /* .active {
