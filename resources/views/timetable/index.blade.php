@@ -1,7 +1,10 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="ui container">
+<div id="progress-dialog" title="Downloading and zipping files...">
+    <div id="progressbar"></div>
+</div>
+<div class="ui container" id="container">
     <div class="ui grid">
         <div class="four wide column">
             <div class="fc-header-form">
@@ -211,6 +214,11 @@
             <div class="one wide column">
                 <button class="ui icon button" id="settings">
                     <i class="cog icon"></i>
+                </button>
+            </div>
+            <div class="one wide column">
+                <button class="ui icon button" id="export-excel">
+                    <i class="save icon"></i>
                 </button>
             </div>
         </div>
@@ -804,33 +812,33 @@
         }
 
         document.getElementById('settings').addEventListener('click', function() {
-    var newTimeSlotDuration = prompt(
-        'Please enter the new time slot duration in hours. For example: "2" for 2 hours');
-    if (newTimeSlotDuration) {
-        var startTime = 8.5; // Start time in hours
-        var endTime = 18;
-        var newTimeSlots = [];
-        for (var time = startTime; time < endTime; time += parseFloat(newTimeSlotDuration)) {
-            var startHour = Math.floor(time).toString().padStart(2, '0');
-            var startMinutes = (time % 1) * 60;
-            var endHour = Math.floor(time + parseFloat(newTimeSlotDuration));
-            var endMinutes = ((time + parseFloat(newTimeSlotDuration)) % 1) * 60;
-            // Check if the end time of the last time slot exceeds the endTime
-            // if (endHour > endTime || (endHour === endTime && endMinutes > 0)) {
-            //     break;
-            // }
-            newTimeSlots.push(
-                `${startHour}:${startMinutes < 10 ? '0' : ''}${startMinutes} - ${endHour}:${endMinutes < 10 ? '0' : ''}${endMinutes}`
-            );
-            // Check if the start time of the next time slot is 13:00
-            if (endHour === 13 && endMinutes === 0) {
-                time += 0.5; // Add the half-hour break
+            var newTimeSlotDuration = prompt(
+                'Please enter the new time slot duration in hours. For example: "2" for 2 hours');
+            if (newTimeSlotDuration) {
+                var startTime = 8.5; // Start time in hours
+                var endTime = 18;
+                var newTimeSlots = [];
+                for (var time = startTime; time < endTime; time += parseFloat(newTimeSlotDuration)) {
+                    var startHour = Math.floor(time).toString().padStart(2, '0');
+                    var startMinutes = (time % 1) * 60;
+                    var endHour = Math.floor(time + parseFloat(newTimeSlotDuration));
+                    var endMinutes = ((time + parseFloat(newTimeSlotDuration)) % 1) * 60;
+                    // Check if the end time of the last time slot exceeds the endTime
+                    // if (endHour > endTime || (endHour === endTime && endMinutes > 0)) {
+                    //     break;
+                    // }
+                    newTimeSlots.push(
+                        `${startHour}:${startMinutes < 10 ? '0' : ''}${startMinutes} - ${endHour}:${endMinutes < 10 ? '0' : ''}${endMinutes}`
+                    );
+                    // Check if the start time of the next time slot is 13:00
+                    if (endHour === 13 && endMinutes === 0) {
+                        time += 0.5; // Add the half-hour break
+                    }
+                }
+                localStorage.setItem('timeSlots', JSON.stringify(newTimeSlots));
+                generateCalendar();
             }
-        }
-        localStorage.setItem('timeSlots', JSON.stringify(newTimeSlots));
-        generateCalendar();
-    }
-});
+        });
 
         function formatTime(time) {
             var hours = Math.floor(time / 60);
@@ -1011,10 +1019,10 @@
         method: 'GET',
         dataType: 'json',
         success: function(response) {
-            // Clear any existing content in the "department-menu"
+
             $('#department-menu').empty();
 
-            // Iterate through the response and create labels
+
             $.each(response, function(index, department) {
                 var label = $('<div class="item" onclick="refillClassAfterDepartement(' + department
                     .department_id + ')" data-value="' + department.department_id + '">' +
@@ -1023,9 +1031,120 @@
             });
         },
         error: function(xhr, status, error) {
-            // Handle errors if any
+
             console.error('Error:', status, error);
         }
+    });
+
+    $("#progress-dialog").dialog({
+        autoOpen: false,
+        closeOnEscape: false,
+        resizable: false,
+        buttons: [],
+        open: function() {
+            $("#progressbar").progressbar({
+                value: false
+            });
+        }
+    });
+
+    $('#export-excel').click(function() {
+        var zip = new JSZip();
+        $('#container').addClass('bluryat');
+        $("<div>Export only the selected group or all groups?</div>").dialog({
+            
+            buttons: {
+                "Selected Group": function() {
+                    var departmentId = $('#department-input').val();
+                    var classId = $('#class-input').val();
+                    var yearId = $('#date-input').val();
+                    var groupId = $('#Group-input').val();
+
+                    
+
+                    $(this).dialog("close");
+                    $('#container').removeClass('bluryat');
+
+                    $.ajax({
+                        url: 'api/export/department/' + departmentId + '/classes/' + classId + '/year/' + yearId + '/group/' + groupId,
+                        method: 'GET',
+                        xhrFields: {
+                            responseType: 'blob' // Important
+                        },
+                        success: function(data, textStatus, xhr) {
+                            var filename = '';
+                            var disposition = xhr.getResponseHeader('Content-Disposition');
+                            if (disposition && disposition.indexOf('attachment') !== -1) {
+                                var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                                var matches = filenameRegex.exec(disposition);
+                                if (matches != null && matches[1]) {
+                                    filename = matches[1].replace(/['"]/g, '');
+                                }
+                            }
+                            // Create a Blob from the response
+                            var blob = new Blob([data], {
+                                type: xhr.getResponseHeader('Content-Type')
+                            });
+                            var url = URL.createObjectURL(blob);
+                            var a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename || 'emploi.xlsx';
+                            document.body.appendChild(a);
+                            a.click();
+                            notify('Success', 'Data exported successfully');
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                        },
+                        error: function(xhr, textStatus, errorThrown) {
+                            notify('Error', 'Error exporting data', 'negative');
+                        }
+                    });
+                },
+                "All Groups": function() {
+                    var departmentId = $('#department-input').val();
+                    var classId = $('#class-input').val();
+                    var yearId = $('#date-input').val();
+
+                    $(this).dialog("close");
+
+                    $("#progress-dialog").dialog("open");
+
+                    $.get('http://127.0.0.1:8000/api/groups/department/' + departmentId + '/classes/' + classId, function(data) {
+                        var requests = [];
+                        $.each(data, function(index, group) {
+                            console.log('Group ID:', group.group_id);
+                            var request = $.ajax({
+                                url: 'api/export/department/' + departmentId + '/classes/' + classId + '/year/' + yearId + '/group/' + group.group_id,
+                                method: 'GET',
+                                xhrFields: {
+                                    responseType: 'blob'
+                                }
+                            });
+
+                            request.done(function(data) {
+                                console.log('Data:', data);
+                                zip.file('Group' + group.group_id + '.xlsx', data, {
+                                    binary: true
+                                });
+                            });
+
+                            requests.push(request);
+                        });
+
+                        // Wait for all AJAX requests to complete
+                        Promise.all(requests).then(function() {
+                            zip.generateAsync({
+                                type: "blob"
+                            }).then(function(content) {
+                                saveAs(content, "groups.zip");
+                                $('#container').removeClass('bluryat');
+                                $("#progress-dialog").dialog("close");
+                            });
+                        });
+                    });
+                }
+            }
+        });
     });
 </script>
 

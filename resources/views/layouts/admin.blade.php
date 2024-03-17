@@ -25,7 +25,7 @@
     {{-- <link rel="stylesheet" href="/resources/demos/style.css"> --}}
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-    
+
 
     <!-- <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script> -->
     <style>
@@ -81,7 +81,7 @@
             /* Add a gap between the div and the table */
         }
 
-        
+
 
         .teacher-name {
             text-align: center;
@@ -120,10 +120,19 @@
                 grid-template-columns: 1fr;
             }
         }
-        .ui.grid.buttonat > .row {
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
-}
+
+        .ui.grid.buttonat>.row {
+            padding-top: 0.5em;
+            padding-bottom: 0.5em;
+        }
+
+        .bluryat {
+            filter: blur(8px);
+        }
+
+        .ui.progress {
+            display: none;
+        }
     </style>
 
 </head>
@@ -142,9 +151,10 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales-all.min.js"></script>
     <script src="https://momentjs.com/downloads/moment-with-locales.js"></script>
-    <script type="text/javascript"
-        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js">
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     @stack('calendar-scripts')

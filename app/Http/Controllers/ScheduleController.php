@@ -203,8 +203,7 @@ class ScheduleController extends Controller
             ->get();
 
 
-        if (empty($schedules)) {
-
+        if ($schedules->isEmpty()) {
             return response()->json(['status' => 'empty']);
         }
 
@@ -233,7 +232,10 @@ class ScheduleController extends Controller
     {
         $response = $this->showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $group_id);
 
+        //dd($response);
+
         if ($response->getData(true)['status'] !== 'success') {
+
 
             return $response;
         }
@@ -553,7 +555,7 @@ class ScheduleController extends Controller
 
         $reservation = new Reservation;
         $reservation->classroom_id = $classroom_id;
-        $reservation->teacher_id = $teacher_id; 
+        $reservation->teacher_id = $teacher_id;
         $reservation->date = $date;
         $reservation->save();
 
