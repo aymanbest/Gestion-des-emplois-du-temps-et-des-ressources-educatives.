@@ -1044,7 +1044,7 @@
         open: function() {
             $("#progressbar").progressbar({
                 value: false
-            });
+            }).children('.ui-progressbar-value').css('background', 'rgb(92, 157, 231)');
         }
     });
 
