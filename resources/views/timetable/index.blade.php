@@ -578,88 +578,78 @@
             // Check if this row's day matches the event's day
             if (dayNamesArabic[daysOfWeek[rowIndex]] === dayNamesArabic[day]) {
                 // Loop through the rest of the cells
+                var eventStartCellIndex = -1;
+                var eventEndCellIndex = -1;
                 for (var i = 1; i < row.cells.length; i++) {
                     // Extract start and end time from the cell's time slot
-                    // console.log('cell textContent', thead.rows[1].cells[i].textContent);
                     var cellTime = thead.rows[0].cells[i].textContent.split(' - ');
                     var cellStartTime = cellTime[0];
                     var cellEndTime = cellTime[1];
 
-                    // console.log('startTime', startTime);
-                    // console.log('endTime', endTime);
-                    // console.log('cellStartTime', cellStartTime);
-                    // console.log('cellEndTime', cellEndTime);
-
                     // Check if the event overlaps with the cell's time range
                     if (startTime < cellEndTime && endTime > cellStartTime) {
-                        // Create a new div for the event
-                        var eventDiv = document.createElement('div');
-                        console.log('eventDiv', eventDiv);
-                        eventDiv.className = 'event';
-                        eventDiv.style.border = '1px solid black';
-                        eventDiv.style.backgroundColor = 'lightblue';
-                        eventDiv.style.overflow = 'hidden'; // Hide overflow
-                        eventDiv.style.textOverflow = 'ellipsis'; // Add ellipsis for overflow text
-                        eventDiv.style.whiteSpace = 'nowrap'; // Prevent text from wrapping to the next line
-                        eventDiv.style.width = '140px'; // Set width
-                        eventDiv.style.height = '89px'; // Set height
-                        eventDiv.innerHTML = title;
-
-                        if ($('#updatepep').val() == "true") {
-                            eventDiv.addEventListener('click', function() {
-                                // Call your captureEvent function here
-                                captureEvent(event);
-                            });
-
-                            eventDiv.addEventListener('contextmenu', function(e) {
-                                e.preventDefault();
-                                if (confirm("Are you sure you want to delete this event?")) {
-                                    var scheduleId = event.schedule_id;
-                                    // Make a DELETE request to the API endpoint
-                                    fetch('api/schedules/delete/' + scheduleId, {
-                                            method: 'DELETE'
-                                        })
-                                        .then(function(response) {
-                                            // Handle the response
-                                            if (response.ok) {
-                                                // Event deleted successfully
-                                                console.log('Event deleted');
-                                                notify('Success', 'Event deleted');
-                                            } else {
-                                                // Error deleting event
-                                                notify('Error', 'Error deleting event', 'negative');
-                                            }
-                                        })
-                                        .catch(function(error) {
-                                            // Handle any errors
-                                            console.log('Error:', error);
-                                        });
-                                }
-                            });
+                        if (eventStartCellIndex === -1) {
+                            eventStartCellIndex = i;
                         }
+                        eventEndCellIndex = i;
+                    }
+                }
 
 
-                        // Calculate the top and bottom position of the event
-                        var rowStartTime = formatTime(startTime);
-                        var startMinutes = timeToMinutes(startTime);
-                        var endMinutes = timeToMinutes(endTime);
-                        var rowStartMinutes = timeToMinutes(cellStartTime);
-                        var rowEndMinutes = timeToMinutes(cellEndTime);
-                        eventDiv.style.top = ((startMinutes - rowStartMinutes) / (rowEndMinutes -
-                            rowStartMinutes) * 100) + '%';
-                        eventDiv.style.bottom = ((rowEndMinutes - endMinutes) / (rowEndMinutes -
-                            rowStartMinutes) * 100) + '%';
-                        // console.log('startMinutes', startMinutes);
-                        // console.log('endMinutes', endMinutes);
-                        // console.log('rowStartMinutes', rowStartMinutes);
-                        // console.log('rowEndMinutes', rowEndMinutes);
-                        console.log('top', ((startMinutes - rowStartMinutes) / (rowEndMinutes -
-                            rowStartMinutes) * 100) + '%');
-                        console.log('bottom', ((rowEndMinutes - endMinutes) / (rowEndMinutes -
-                            rowStartMinutes) * 100) + '%');
-                        // Add the event to the cell
-                        //clearEvents();
-                        row.cells[i].appendChild(eventDiv);
+                if (eventStartCellIndex !== -1 && eventEndCellIndex !== -1) {
+                    var eventDiv = document.createElement('div');
+                    eventDiv.className = 'event';
+                    eventDiv.style.border = '1px solid black';
+                    eventDiv.style.backgroundColor = 'lightblue';
+                    eventDiv.style.overflow = 'hidden'; // Hide overflow
+                    eventDiv.style.textOverflow = 'ellipsis'; // Add ellipsis for overflow text
+                    eventDiv.style.whiteSpace = 'nowrap'; // Prevent text from wrapping to the next line
+                    eventDiv.style.width = '100%'; // Set width
+                    eventDiv.style.height = '100%'; // Set height
+                    eventDiv.innerHTML = title;
+
+                    if ($('#updatepep').val() == "true") {
+                        eventDiv.addEventListener('click', function() {
+                            // Call your captureEvent function here
+                            captureEvent(event);
+                        });
+
+
+                        eventDiv.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            if (confirm("Are you sure you want to delete this event?")) {
+                                var scheduleId = event.schedule_id;
+                                // Make a DELETE request to the API endpoint
+                                fetch('api/schedules/delete/' + scheduleId, {
+                                        method: 'DELETE'
+                                    })
+                                    .then(function(response) {
+                                        // Handle the response
+                                        if (response.ok) {
+                                            // Event deleted successfully
+                                            console.log('Event deleted');
+                                            notify('Success', 'Event deleted');
+                                        } else {
+                                            // Error deleting event
+                                            notify('Error', 'Error deleting event', 'negative');
+                                        }
+                                    })
+                                    .catch(function(error) {
+                                        // Handle any errors
+                                        console.log('Error:', error);
+                                    });
+                            }
+                        });
+                    }
+
+
+                    // Add the event to the cell
+                    row.cells[eventStartCellIndex].appendChild(eventDiv);
+                    row.cells[eventStartCellIndex].colSpan = eventEndCellIndex - eventStartCellIndex + 1;
+
+                    // Remove the cells that are spanned by the event
+                    for (var i = eventStartCellIndex + 1; i <= eventEndCellIndex; i++) {
+                        row.cells[i].style.display = 'none';
                     }
                 }
             }
@@ -1045,6 +1035,11 @@
             $("#progressbar").progressbar({
                 value: false
             }).children('.ui-progressbar-value').css('background', 'rgb(92, 157, 231)');
+            $('#container').addClass('bluryat');
+        },
+        close: function() {
+            $("#progressbar").progressbar('destroy');
+            $('#container').removeClass('bluryat');
         }
     });
 
@@ -1052,7 +1047,7 @@
         var zip = new JSZip();
         $('#container').addClass('bluryat');
         $("<div>Export only the selected group or all groups?</div>").dialog({
-            
+
             buttons: {
                 "Selected Group": function() {
                     var departmentId = $('#department-input').val();
@@ -1060,7 +1055,7 @@
                     var yearId = $('#date-input').val();
                     var groupId = $('#Group-input').val();
 
-                    
+
 
                     $(this).dialog("close");
                     $('#container').removeClass('bluryat');
@@ -1143,6 +1138,9 @@
                         });
                     });
                 }
+            },
+            close: function() {
+                $('#container').removeClass('bluryat');
             }
         });
     });

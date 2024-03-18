@@ -17,6 +17,8 @@ use App\Models\Classroom;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Reservation;
 use Illuminate\Support\Carbon;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\ClassesController;
 
 
 class ScheduleController extends Controller
@@ -250,11 +252,60 @@ class ScheduleController extends Controller
 
     public function updateExcelTemplate($templatePath, $events, $namexls)
     {
+        //dd($events[0]);
 
         $spreadsheet = IOFactory::load($templatePath);
         $worksheet = $spreadsheet->getActiveSheet();
+       
 
         $newTimeSlotMap = ['Monday' => ['08:30 - 10:00' => ['module_name' => ['R8', 'S8', 'Q8'], 'classroom_code' => ['R9', 'S9', 'Q9'], 'teacher_fullname' => ['R10', 'S10', 'Q10'],], '10:00 - 11:30' => ['module_name' => ['O8', 'P8', 'N8'], 'classroom_code' => ['O9', 'P9', 'N9'], 'teacher_fullname' => ['O10', 'P10', 'N10'],], '11:30 - 13:00' => ['module_name' => ['L8', 'M8', 'K8'], 'classroom_code' => ['L9', 'M9', 'K9'], 'teacher_fullname' => ['L10', 'M10', 'K10'],], '13:30 - 15:00' => ['module_name' => ['H8', 'I8', 'G8'], 'classroom_code' => ['H9', 'I9', 'G9'], 'teacher_fullname' => ['H10', 'I10', 'G10'],], '15:00 - 16:30' => ['module_name' => ['E8', 'F8', 'D8'], 'classroom_code' => ['E9', 'F9', 'D9'], 'teacher_fullname' => ['E10', 'F10', 'D10'],], '16:30 - 18:00' => ['module_name' => ['B8', 'C8', 'A8'], 'classroom_code' => ['B9', 'C9', 'A9'], 'teacher_fullname' => ['B10', 'C10', 'A10'],],], 'Tuesday' => ['08:30 - 10:00' => ['module_name' => ['R11', 'S11', 'Q11'], 'classroom_code' => ['R12', 'S12', 'Q12'], 'teacher_fullname' => ['R13', 'S13', 'Q13'],], '10:00 - 11:30' => ['module_name' => ['O11', 'P11', 'N11'], 'classroom_code' => ['O12', 'P12', 'N12'], 'teacher_fullname' => ['O13', 'P13', 'N13'],], '11:30 - 13:00' => ['module_name' => ['L11', 'M11', 'K11'], 'classroom_code' => ['L12', 'M12', 'K12'], 'teacher_fullname' => ['L13', 'M13', 'K13'],], '13:30 - 15:00' => ['module_name' => ['H11', 'I11', 'G11'], 'classroom_code' => ['H12', 'I12', 'G12'], 'teacher_fullname' => ['H13', 'I13', 'G13'],], '15:00 - 16:30' => ['module_name' => ['E11', 'F11', 'D11'], 'classroom_code' => ['E12', 'F12', 'D12'], 'teacher_fullname' => ['E13', 'F13', 'D13'],], '16:30 - 18:00' => ['module_name' => ['B11', 'C11', 'A11'], 'classroom_code' => ['B12', 'C12', 'A12'], 'teacher_fullname' => ['B13', 'C13', 'A13'],],], 'Wednesday' => ['08:30 - 10:00' => ['module_name' => ['R14', 'S14', 'Q14'], 'classroom_code' => ['R15', 'S15', 'Q15'], 'teacher_fullname' => ['R16', 'S16', 'Q16'],], '10:00 - 11:30' => ['module_name' => ['O14', 'P14', 'N14'], 'classroom_code' => ['O15', 'P15', 'N15'], 'teacher_fullname' => ['O16', 'P16', 'N16'],], '11:30 - 13:00' => ['module_name' => ['L14', 'M14', 'K14'], 'classroom_code' => ['L15', 'M15', 'K15'], 'teacher_fullname' => ['L16', 'M16', 'K16'],], '13:30 - 15:00' => ['module_name' => ['H14', 'I14', 'G14'], 'classroom_code' => ['H15', 'I15', 'G15'], 'teacher_fullname' => ['H16', 'I16', 'G16'],], '15:00 - 16:30' => ['module_name' => ['E14', 'F14', 'D14'], 'classroom_code' => ['E15', 'F15', 'D15'], 'teacher_fullname' => ['E16', 'F16', 'D16'],], '16:30 - 18:00' => ['module_name' => ['B14', 'C14', 'A14'], 'classroom_code' => ['B15', 'C15', 'A15'], 'teacher_fullname' => ['B16', 'C16', 'A16'],],], 'Thursday' => ['08:30 - 10:00' => ['module_name' => ['R17', 'S17', 'Q17'], 'classroom_code' => ['R18', 'S18', 'Q18'], 'teacher_fullname' => ['R19', 'S19', 'Q19'],], '10:00 - 11:30' => ['module_name' => ['O17', 'P17', 'N17'], 'classroom_code' => ['O18', 'P18', 'N18'], 'teacher_fullname' => ['O19', 'P19', 'N19'],], '11:30 - 13:00' => ['module_name' => ['L17', 'M17', 'K17'], 'classroom_code' => ['L18', 'M18', 'K18'], 'teacher_fullname' => ['L19', 'M19', 'K19'],], '13:30 - 15:00' => ['module_name' => ['H17', 'I17', 'G17'], 'classroom_code' => ['H18', 'I18', 'G18'], 'teacher_fullname' => ['H19', 'I19', 'G19'],], '15:00 - 16:30' => ['module_name' => ['E17', 'F17', 'D17'], 'classroom_code' => ['E18', 'F18', 'D18'], 'teacher_fullname' => ['E19', 'F19', 'D19'],], '16:30 - 18:00' => ['module_name' => ['B17', 'C17', 'A17'], 'classroom_code' => ['B18', 'C18', 'A18'], 'teacher_fullname' => ['B19', 'C19', 'A19'],],], 'Friday' => ['08:30 - 10:00' => ['module_name' => ['R20', 'S20', 'Q20'], 'classroom_code' => ['R21', 'S21', 'Q21'], 'teacher_fullname' => ['R22', 'S22', 'Q22'],], '10:00 - 11:30' => ['module_name' => ['O20', 'P20', 'N20'], 'classroom_code' => ['O21', 'P21', 'N21'], 'teacher_fullname' => ['O22', 'P22', 'N22'],], '11:30 - 13:00' => ['module_name' => ['L20', 'M20', 'K20'], 'classroom_code' => ['L21', 'M21', 'K21'], 'teacher_fullname' => ['L22', 'M22', 'K22'],], '13:30 - 15:00' => ['module_name' => ['H20', 'I20', 'G20'], 'classroom_code' => ['H21', 'I21', 'G21'], 'teacher_fullname' => ['H22', 'I22', 'G22'],], '15:00 - 16:30' => ['module_name' => ['E20', 'F20', 'D20'], 'classroom_code' => ['E21', 'F21', 'D21'], 'teacher_fullname' => ['E22', 'F22', 'D22'],], '16:30 - 18:00' => ['module_name' => ['B20', 'C20', 'A20'], 'classroom_code' => ['B21', 'C21', 'A21'], 'teacher_fullname' => ['B22', 'C22', 'A22'],],], 'Saturday' => ['08:30 - 10:00' => ['module_name' => ['R23', 'S23', 'Q23'], 'classroom_code' => ['R24', 'S24', 'Q24'], 'teacher_fullname' => ['R25', 'S25', 'Q25'],], '10:00 - 11:30' => ['module_name' => ['O23', 'P23', 'N23'], 'classroom_code' => ['O24', 'P24', 'N24'], 'teacher_fullname' => ['O25', 'P25', 'N25'],], '11:30 - 13:00' => ['module_name' => ['L23', 'M23', 'K23'], 'classroom_code' => ['L24', 'M24', 'K24'], 'teacher_fullname' => ['L25', 'M25', 'K25'],], '13:30 - 15:00' => ['module_name' => ['H23', 'I23', 'G23'], 'classroom_code' => ['H24', 'I24', 'G24'], 'teacher_fullname' => ['H25', 'I25', 'G25'],], '15:00 - 16:30' => ['module_name' => ['E23', 'F23', 'D23'], 'classroom_code' => ['E24', 'F24', 'D24'], 'teacher_fullname' => ['E25', 'F25', 'D25'],], '16:30 - 18:00' => ['module_name' => ['B23', 'C23', 'A23'], 'classroom_code' => ['B24', 'C24', 'A24'], 'teacher_fullname' => ['B25', 'C25', 'A25'],],],];
+        
+        $year = ['A1', 'B1', 'C1'];
+        $Division = ['A2', 'B2', 'C2'];
+        $path = ['A3', 'B3', 'C3'];
+        $semester = ['A4', 'B4', 'C4'];
+        $grouup = ['A5', 'B5', 'C5'];
+
+        $yearid =$events[0]['year_id'];
+        $yearres = Year::find($yearid);
+        $yearName = $yearres->year;
+
+        $yearcellvalue = $yearName . '/' . $yearName - 1;
+
+        $worksheet->mergeCells(reset($year) . ':' . end($year));
+        $worksheet->setCellValue($year[0], $yearcellvalue);
+
+
+        $departmentCode = $events[0]['department_id'];
+        $departmentController = new DepartmentController;
+        $depDetails = $departmentController->show($departmentCode);
+        $depDetails = json_decode($depDetails->getContent(), true);
+        $departmentName = $depDetails['name'];
+        $depcode = $depDetails['department_code'];
+        $divisionCellValue = $depcode . ' ' . $departmentName;
+
+        $worksheet->mergeCells($Division[0] . ':' . end($Division));
+        $worksheet->setCellValue($Division[0], $divisionCellValue);
+
+        $classId = $events[0]['class_id'];
+        $classesController = new ClassesController;
+        $classDetails = $classesController->getById($classId);
+        $classDetails = json_decode($classDetails->getContent(), true);
+
+        $className = $classDetails['name'];
+
+        //dd(end($path), reset($path));
+
+        $worksheet->mergeCells(reset($path) . ':' . end($path));
+        $worksheet->setCellValue($path[0], $className);
+
+        $semesterCellValue = "SM . " . $events[0]['semester_id'];
+        $worksheet->mergeCells($semester[0] . ':' . end($semester));
+        $worksheet->setCellValue($semester[0], $semesterCellValue);
+
+        $groupCellValue = "GP . " . $events[0]['group_id'];
+        $worksheet->mergeCells($grouup[0] . ':' . end($grouup));
+        $worksheet->setCellValue($grouup[0], $groupCellValue);
 
         foreach ($newTimeSlotMap as $day => $timeSlots) {
             foreach ($timeSlots as $timeRange => $cellCoordinates) {
@@ -267,9 +318,8 @@ class ScheduleController extends Controller
                     $endTime = substr($event['end_time'], 0, 5);
 
                     // Compare the times as time, not as strings
-                    return $event['day_of_week'] === $day && $startTime >= $rangeStart && $endTime <= $rangeEnd;
+                    return $event['day_of_week'] === $day && $startTime < $rangeEnd && $endTime > $rangeStart;
                 });
-
 
                 foreach ($dayEvents as $event) {
                     foreach ($cellCoordinates as $element => $coordinates) {
@@ -277,9 +327,7 @@ class ScheduleController extends Controller
                             $cellValue = $event[$element];
                         }
                         sort($coordinates);
-                        //dd($coordinates);
                         $startCoordinate = reset($coordinates);
-                        // dd($startCoordinate);
                         $endCoordinate = end($coordinates);
                         $worksheet->mergeCells($startCoordinate . ':' . $endCoordinate);
                         $worksheet->setCellValue($startCoordinate, $cellValue);
@@ -287,7 +335,6 @@ class ScheduleController extends Controller
                 }
             }
         }
-
 
 
         // Save the modified Excel template
