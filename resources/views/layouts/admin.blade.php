@@ -124,6 +124,9 @@
     padding-top: 0.5em;
     padding-bottom: 0.5em;
 }
+.ui.container.modal-open {
+    filter: blur(2px);
+}
     </style>
 
 </head>

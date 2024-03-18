@@ -527,6 +527,7 @@ class ScheduleController extends Controller
 
     public function reserveClass(Request $request)
     {
+        // dd($request->all());    
         $classroom_id = $request->input('classroom_id');
         $day_of_week = $request->input('day_of_week');
         $teacher_id = $request->input('teacher_id');
@@ -553,7 +554,10 @@ class ScheduleController extends Controller
 
         $reservation = new Reservation;
         $reservation->classroom_id = $classroom_id;
-        $reservation->teacher_id = $teacher_id; 
+        $reservation->teacher_id = $teacher_id;
+        $reservation->start_time = $start_time;
+        $reservation->end_time = $end_time;
+        $reservation->day_of_week = $day_of_week;
         $reservation->date = $date;
         $reservation->save();
 
