@@ -1081,7 +1081,7 @@
                                     filename = matches[1].replace(/['"]/g, '');
                                 }
                             }
-                            // Create a Blob from the response
+                            //blob
                             var blob = new Blob([data], {
                                 type: xhr.getResponseHeader('Content-Type')
                             });

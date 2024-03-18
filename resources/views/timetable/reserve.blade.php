@@ -123,8 +123,11 @@
                             <i class="undo icon"></i>
                         </button>
                     </div>
+                    <div class="ui hidden divider"></div>
+                    <div id="raport"></div>
                 </div>
-                <div id="raport"></div>
+                
+                
             </div>
         </div>
     </div>
