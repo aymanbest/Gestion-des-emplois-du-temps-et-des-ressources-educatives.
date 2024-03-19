@@ -46,6 +46,12 @@
             height: 89px;
         }
 
+        .Refresh-button {
+            position: absolute;
+bottom: 20px;
+            
+        }
+
         /* Add some styles for the events */
         .event {
             /* position: absolute; */
