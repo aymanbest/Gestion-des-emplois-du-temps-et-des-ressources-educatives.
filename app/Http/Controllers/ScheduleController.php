@@ -19,7 +19,7 @@ use App\Models\Reservation;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ClassesController;
-
+use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
 {
@@ -308,29 +308,55 @@ class ScheduleController extends Controller
         $worksheet->setCellValue($grouup[0], $groupCellValue);
 
         foreach ($newTimeSlotMap as $day => $timeSlots) {
-            foreach ($timeSlots as $timeRange => $cellCoordinates) {
-
-                [$rangeStart, $rangeEnd] = explode(' - ', $timeRange);
-
-                // Find events for the current day and time slot
-                $dayEvents = array_filter($events, function ($event) use ($day, $rangeStart, $rangeEnd) {
-                    $startTime = substr($event['start_time'], 0, 5);
-                    $endTime = substr($event['end_time'], 0, 5);
-
-                    // Compare the times as time, not as strings
-                    return $event['day_of_week'] === $day && $startTime < $rangeEnd && $endTime > $rangeStart;
-                });
-
-                foreach ($dayEvents as $event) {
-                    foreach ($cellCoordinates as $element => $coordinates) {
+            // Find events for the current day
+            $dayEvents = array_filter($events, function ($event) use ($day) {
+                return $event['day_of_week'] === $day;
+            });
+        
+            foreach ($dayEvents as $event) {
+                $eventStartTime = substr($event['start_time'], 0, 5);
+                $eventEndTime = substr($event['end_time'], 0, 5);
+                $eventTimeRange = $eventStartTime . ' - ' . $eventEndTime;
+        
+                $startCoordinate = null;
+                $endCoordinate = null;
+        
+                if (isset($timeSlots[$eventTimeRange])) {
+                    foreach ($timeSlots[$eventTimeRange] as $element => $coordinates) {
+                        sort($coordinates);
+                        $startCoordinate[$element] = end($coordinates);
+                        $endCoordinate[$element] = reset($coordinates);
+                    }
+                } else {
+                    // If the event duration doesn't match a time slot, use the existing logic
+                    foreach ($timeSlots as $timeRange => $cellCoordinates) {
+                        [$rangeStart, $rangeEnd] = explode(' - ', $timeRange);
+            
+                        // Check if the event spans this time slot
+                        if ($eventStartTime < $rangeEnd && $eventEndTime > $rangeStart) {
+                            foreach ($cellCoordinates as $element => $coordinates) {
+                                if (!isset($startCoordinate[$element])) {
+                                    sort($coordinates);
+                                    // This is the first time slot the event spans for this element
+                                    $startCoordinate[$element] = end($coordinates);
+                                }
+                                // This is the last time slot the event spans (so far) for this element
+                                $endCoordinate[$element] = end($coordinates);
+                            }
+                        }
+                    }
+                }
+                
+                if ($startCoordinate && $endCoordinate) {
+                    foreach ($startCoordinate as $element => $startCoord) {
                         if (isset($event[$element])) {
                             $cellValue = $event[$element];
                         }
-                        sort($coordinates);
-                        $startCoordinate = reset($coordinates);
-                        $endCoordinate = end($coordinates);
-                        $worksheet->mergeCells($startCoordinate . ':' . $endCoordinate);
-                        $worksheet->setCellValue($startCoordinate, $cellValue);
+                        if (isset($endCoordinate[$element])) {
+                            $worksheet->setCellValue($endCoordinate[$element], $cellValue);
+                            $worksheet->mergeCells($startCoord . ':' . $endCoordinate[$element]);
+                            Log::info($startCoord . ':' . $endCoordinate[$element] . ' ' . $cellValue);
+                        }
                     }
                 }
             }
