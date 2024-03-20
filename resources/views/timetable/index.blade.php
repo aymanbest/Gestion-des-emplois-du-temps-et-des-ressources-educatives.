@@ -548,6 +548,8 @@
             });
         });
 
+        generateCalendar();
+
     }
 
     var dayNamesArabic = {
@@ -618,6 +620,7 @@
                         eventDiv.addEventListener('contextmenu', function(e) {
                             e.preventDefault();
                             if (confirm("Are you sure you want to delete this event?")) {
+                                console.log('Event:', event);
                                 var scheduleId = event.schedule_id;
                                 // Make a DELETE request to the API endpoint
                                 fetch('api/schedules/delete/' + scheduleId, {
@@ -629,6 +632,9 @@
                                             // Event deleted successfully
                                             console.log('Event deleted');
                                             notify('Success', 'Event deleted');
+                                            searchAndDisplayEvents(event.class_id, event.department_id, event.group_id, event.year_id);
+
+                                            generateCalendar();
                                         } else {
                                             // Error deleting event
                                             notify('Error', 'Error deleting event', 'negative');
@@ -674,15 +680,11 @@
 
     var searchEnabled = $('#searchpep').val() == 'true' ? true : false;
 
-
-
-
-    function searchAndDisplayEvents() {
-        var classInput = $("#class-input").val();
-        var departmentInput = $("#department-input").val();
-        var groupInput = $("#Group-input").val();
-        var selectedYearID = $("#date-input").val();
-
+    function searchAndDisplayEvents(classInput = 'null', departmentInput = 'null', groupInput= 'null', selectedYearID= 'null') {
+        var classInput = $("#class-input").val() ? $("#class-input").val() : classInput;
+        var departmentInput = $("#department-input").val() ? $("#department-input").val() : departmentInput;
+        var groupInput = $("#Group-input").val() ? $("#Group-input").val() : groupInput;
+        var selectedYearID = $("#date-input").val() ? $("#date-input").val() : selectedYearID;
         var fetchUrl = 'http://127.0.0.1:8000/api/schedules/show/department/' +
             departmentInput + '/classes/' + classInput + '/year/' + selectedYearID + '/group/' + groupInput;
 
@@ -700,7 +702,7 @@
                 }
 
                 clearEvents();
-
+                
                 if (data.status == "success") {
                     //calendar.removeAllEvents();
                     notify('successful', 'Found Events');
@@ -754,8 +756,7 @@
 </script>
 
 <script>
-    $(document).ready(function() {
-        function generateCalendar() {
+    function generateCalendar() {
             var daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             var timeSlots = JSON.parse(localStorage.getItem('timeSlots')) || ['08:30 - 10:00', '10:00 - 11:30',
                 '11:30 - 13:00', '13:30 - 15:00', '15:00 - 16:30', '16:30 - 18:00'
@@ -800,6 +801,8 @@
                 tableBody.appendChild(row);
             }
         }
+    $(document).ready(function() {
+        
 
         document.getElementById('settings').addEventListener('click', function() {
             var newTimeSlotDuration = prompt(

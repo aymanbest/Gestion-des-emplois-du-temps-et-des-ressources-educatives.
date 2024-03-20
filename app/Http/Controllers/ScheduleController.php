@@ -141,6 +141,43 @@ class ScheduleController extends Controller
         return response()->json($events);
     }
 
+
+    public function getSchedulesAndReservations($classroom_id)
+{
+    // Fetch schedules
+    $schedules = DB::table('schedules')
+        ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
+        ->join('departments', 'classes.department_id', '=', 'departments.department_id')
+        ->join('modules', 'schedules.module_id', '=', 'modules.module_id')
+        ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id')
+        ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
+        ->join('teacher_types', 'teachers.teacher_type_id', '=', 'teacher_types.teacher_type_id')
+        ->join('semesters', 'schedules.semester_id', '=', 'semesters.semester_id')
+        ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname', 'teacher_types.teacher_type_id')
+        ->where('schedules.classroom_id', '=', $classroom_id)
+        ->get();
+
+    // Fetch reservations
+    $reservations = DB::table('reservations')
+        ->join('classrooms', 'reservations.classroom_id', '=', 'classrooms.classroom_id')
+        ->join('teachers', 'reservations.teacher_id', '=', 'teachers.teacher_id')
+        ->select('reservations.*', 'teachers.fullname')
+        ->where('reservations.classroom_id', '=', $classroom_id)
+        ->get();
+
+    // Merge schedules and reservations
+    $events = [];
+    foreach ($schedules as $schedule) {
+        array_push($events, array_merge((array)$schedule, ['reserve' => false]));
+    }
+    foreach ($reservations as $reservation) {
+        array_push($events, array_merge((array)$reservation, ['reserve' => true]));
+    }
+
+    // Return as JSON
+    return response()->json($events);
+}
+
     public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $group_id)
     {
         $schedules = DB::table('schedules')
