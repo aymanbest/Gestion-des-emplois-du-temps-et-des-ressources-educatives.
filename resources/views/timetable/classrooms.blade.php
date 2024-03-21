@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
 @section('content')
+<div class="ui hidden divider"></div>
+<div class="ui hidden divider"></div>
+<div class="ui hidden divider"></div>
 <div id="progress-dialog" title="Downloading and zipping files...">
     <div id="progressbar"></div>
 </div>
-<div class="ui hidden divider"></div>
-<div class="ui hidden divider"></div>
-<div class="ui hidden divider"></div>
 <div class="ui container" id="container">
 <div class="ui hidden divider"></div>
     <div class="ui grid">
@@ -14,10 +14,10 @@
             <div class="fc-header-form">
                 <h2 class="fc-header-form-title" id="fc-header-form-title-dom-1">Classroom Schedules</h2>
             </div>
-            <div class="ui form">
+            <div class="ui  form">
                 <div class="field" id="salle-field">
                     <p>Salle</p>
-                    <div class="ui dropdown selection">
+                    <div class="ui fluid search selection dropdown">
                         <input type="hidden" id="Salle-input" name="Salle">
                         <div class="default text">Salle</div>
                         <i class="dropdown icon"></i>
@@ -195,11 +195,11 @@
         }
     }
     $(document).ready(function() {
-        $.get('/api/classrooms', function(data) {
+        $.get('/api/classrooms/getAllClassrooms', function(data) {
             var menu = $('#Salle-menu');
             data.forEach(function(c) {
                 menu.append('<div class="item" data-value="' + c
-                    .classroom_id + '">' + c.name + '</div>');
+                    .classroom_id + '">' + c.name + " " + (c.full ? '' : '<span style="color: lightblue;">No S</span>' ) + '</div>');
             });
         });
         $('#Salle-input').parent().dropdown();
@@ -288,6 +288,10 @@
     $('#session-submit').click(function() {
         var classroomId = $('#Salle-input').val();
         $.get('/api/scherev/classroom/' + classroomId, function(data) {
+            if (data.status == "empty") {
+                notify('Aucun événement trouvé', 'Pour cette salle de classe', 'négatif');
+                return;
+            }
             console.log(data);
             $('#depclassinfo').html('<p>' + data.events[0].classroom_code + '</p>');
             clearEvents();

@@ -32,6 +32,7 @@ Route::get('/classes/show/{department_id}', [App\Http\Controllers\ClassesControl
 Route::get('/classes/getById/{class_id}', [App\Http\Controllers\ClassesController::class, 'getById'])->name('class');
 
 Route::get('/classrooms', [App\Http\Controllers\ClassroomController::class, 'index'])->name('classrooms');
+Route::get('/classrooms/getAllClassrooms', [App\Http\Controllers\ClassroomController::class, 'getAllClassrooms'])->name('getAllClassrooms');
 Route::get('/classrooms/show/{department_id}/{class_id}', [App\Http\Controllers\ClassroomController::class, 'show'])->name('classroom');
 
 Route::get('/schedules', [App\Http\Controllers\ScheduleController::class, 'index'])->name('schedules');

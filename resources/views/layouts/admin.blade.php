@@ -44,6 +44,7 @@
             position: relative;
             width: 142px;
             height: 89px;
+            font-weight: bold;
         }
 
         .Refresh-button {
@@ -66,6 +67,7 @@ bottom: 20px;
             align-items: center;
             /* Center contents horizontally */
             justify-content: center;
+            font-weight: initial;
 
         }
 

@@ -19,6 +19,26 @@ class ClassroomController extends Controller
         return response()->json($classrooms);
     }
 
+    public function getAllClassrooms()
+{
+    $classrooms = Classroom::all();
+
+    foreach ($classrooms as $classroom) {
+        $classroom_id = $classroom->classroom_id;
+
+        $existsInSchedules = DB::table('schedules')->where('classroom_id', $classroom_id)->exists();
+        $existsInReservations = DB::table('reservations')->where('classroom_id', $classroom_id)->exists();
+
+        if ($existsInSchedules || $existsInReservations) {
+            $classroom->full = true;
+        } else {
+            $classroom->full = false;
+        }
+    }
+
+    return response()->json($classrooms);
+}
+
     /**
      * Show the form for creating a new resource.
      */
@@ -52,6 +72,7 @@ class ClassroomController extends Controller
         return response()->json($result);
     }
 
+
     public function getAvailableClassrooms(Request $request)
     {
 
@@ -74,6 +95,8 @@ class ClassroomController extends Controller
         return response()->json($classrooms);
 
     }
+
+
     
 
     /**
