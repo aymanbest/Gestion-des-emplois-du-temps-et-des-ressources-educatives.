@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ClassesController;
 use Illuminate\Support\Facades\Log;
+use PhpParser\Node\Expr\Empty_;
 
 class ScheduleController extends Controller
 {
@@ -143,40 +144,44 @@ class ScheduleController extends Controller
 
 
     public function getSchedulesAndReservations($classroom_id)
-{
-    // Fetch schedules
-    $schedules = DB::table('schedules')
-        ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
-        ->join('departments', 'classes.department_id', '=', 'departments.department_id')
-        ->join('modules', 'schedules.module_id', '=', 'modules.module_id')
-        ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id')
-        ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
-        ->join('teacher_types', 'teachers.teacher_type_id', '=', 'teacher_types.teacher_type_id')
-        ->join('semesters', 'schedules.semester_id', '=', 'semesters.semester_id')
-        ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname', 'teacher_types.teacher_type_id')
-        ->where('schedules.classroom_id', '=', $classroom_id)
-        ->get();
+    {
+        // Fetch schedules
+        $schedules = DB::table('schedules')
+            ->join('classes', 'schedules.class_id', '=', 'classes.class_id')
+            ->join('departments', 'classes.department_id', '=', 'departments.department_id')
+            ->join('modules', 'schedules.module_id', '=', 'modules.module_id')
+            ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.classroom_id')
+            ->join('teachers', 'schedules.teacher_id', '=', 'teachers.teacher_id')
+            ->join('teacher_types', 'teachers.teacher_type_id', '=', 'teacher_types.teacher_type_id')
+            ->join('semesters', 'schedules.semester_id', '=', 'semesters.semester_id')
+            ->select('schedules.*', 'modules.name as module_name', 'classrooms.classroom_code', 'teachers.fullname', 'teacher_types.teacher_type_id')
+            ->where('schedules.classroom_id', '=', $classroom_id)
+            ->get();
 
-    // Fetch reservations
-    $reservations = DB::table('reservations')
-        ->join('classrooms', 'reservations.classroom_id', '=', 'classrooms.classroom_id')
-        ->join('teachers', 'reservations.teacher_id', '=', 'teachers.teacher_id')
-        ->select('reservations.*', 'teachers.fullname')
-        ->where('reservations.classroom_id', '=', $classroom_id)
-        ->get();
+        // Fetch reservations
+        $reservations = DB::table('reservations')
+            ->join('classrooms', 'reservations.classroom_id', '=', 'classrooms.classroom_id')
+            ->join('teachers', 'reservations.teacher_id', '=', 'teachers.teacher_id')
+            ->select('reservations.*', 'teachers.fullname', 'classrooms.classroom_code')
+            ->where('reservations.classroom_id', '=', $classroom_id)
+            ->get();
 
-    // Merge schedules and reservations
-    $events = [];
-    foreach ($schedules as $schedule) {
-        array_push($events, array_merge((array)$schedule, ['reserve' => false]));
+        // Merge schedules and reservations
+        $events = [];
+        foreach ($schedules as $schedule) {
+            array_push($events, array_merge((array)$schedule, ['reserve' => false]));
+        }
+        foreach ($reservations as $reservation) {
+            array_push($events, array_merge((array)$reservation, ['reserve' => true]));
+        }
+
+        // Return as JSON
+        if (empty($events)) {
+            return response()->json(['status' => 'empty']);
+        }
+
+        return response()->json(['status' => 'success', 'events' => $events]);
     }
-    foreach ($reservations as $reservation) {
-        array_push($events, array_merge((array)$reservation, ['reserve' => true]));
-    }
-
-    // Return as JSON
-    return response()->json($events);
-}
 
     public function showSchedulesByYearByDepartmentClassesGroup($department_id, $class_id, $year_id, $group_id)
     {
@@ -264,7 +269,7 @@ class ScheduleController extends Controller
         $events = $response->getData(true)['events'];
         $namexls = 'Teacher' . $teacher_id . '.xlsx';
 
-        $this->updateExcelTemplate($templatePath, $events, $namexls, true);
+        $this->updateExcelTemplate($templatePath, $events, $namexls, 'teacher');
 
         return response()->download($namexls)->deleteFileAfterSend(true);
     }
@@ -284,12 +289,35 @@ class ScheduleController extends Controller
         $events = $response->getData(true)['events'];
         $namexls = 'Group' . $group_id . '.xlsx';
 
-        $this->updateExcelTemplate($templatePath, $events, $namexls);
+        $this->updateExcelTemplate($templatePath, $events, $namexls, "schedule");
 
         return response()->download($namexls)->deleteFileAfterSend(true);
     }
 
-    public function updateExcelTemplate($templatePath, $events, $namexls, $state = false)
+
+    public function generateUpdatedExcelClassroom($classroom_id, $templatePath = 'templates/emp_classrooms.xls')
+    {
+        $response = $this->getSchedulesAndReservations($classroom_id);
+
+        //dd($response);
+
+        if ($response->getData(true)['status'] !== 'success') {
+
+
+            return $response;
+        }
+
+        $events = $response->getData(true)['events'];
+        $namexls = $events[0]["classroom_code"] . '.xlsx';
+
+        $this->updateExcelTemplate($templatePath, $events, $namexls, 'classroom');
+
+        return response()->download($namexls)->deleteFileAfterSend(true);
+    }
+
+    public function updateExcelTemplate($templatePath, $events, $namexls, $state)
+
+
     {
         //dd($events);
 
@@ -309,50 +337,61 @@ class ScheduleController extends Controller
         $yearres = Year::find($yearid);
         $yearName = $yearres->year;
 
+        $classroomcellvalue = $events[0]['classroom_code'];
+
         $yearcellvalue = $yearName . '/' . $yearName - 1;
 
-        $worksheet->mergeCells(reset($year) . ':' . end($year));
-        $worksheet->setCellValue($year[0], $yearcellvalue);
-
-
-        $departmentCode = $events[0]['department_id'];
-        $departmentController = new DepartmentController;
-        $depDetails = $departmentController->show($departmentCode);
-        $depDetails = json_decode($depDetails->getContent(), true);
-        $departmentName = $depDetails['name'];
-        $depcode = $depDetails['department_code'];
-        $divisionCellValue = $depcode . ' ' . $departmentName;
-
-        $worksheet->mergeCells($Division[0] . ':' . end($Division));
-        $worksheet->setCellValue($Division[0], $divisionCellValue);
-
-        $classId = $events[0]['class_id'];
-        $classesController = new ClassesController;
-        $classDetails = $classesController->getById($classId);
-        $classDetails = json_decode($classDetails->getContent(), true);
-
-
-
-        $semesterCellValue = "SM . " . $events[0]['semester_id'];
-        $groupCellValue = "GP . " . $events[0]['group_id'];
-        if ($state) {
-
-            $className = $events[0]['fullname'];
-
-            $worksheet->mergeCells(reset($path) . ':' . end($path));
-            $worksheet->setCellValue($path[0], $className);
+        if ($state == "classroom") {
+            $worksheet->mergeCells(reset($Division) . ':' . end($Division));
+            $worksheet->setCellValue($Division[0], $yearcellvalue);
+            $worksheet->mergeCells(reset($semester) . ':' . end($semester));
+            $worksheet->setCellValue($semester[0], $classroomcellvalue);
         } else {
-            $className = $classDetails['name'];
+            $worksheet->mergeCells(reset($year) . ':' . end($year));
+            $worksheet->setCellValue($year[0], $yearcellvalue);
+            $departmentCode = $events[0]['department_id'];
+            $departmentController = new DepartmentController;
+            $depDetails = $departmentController->show($departmentCode);
+            $depDetails = json_decode($depDetails->getContent(), true);
+            $departmentName = $depDetails['name'];
+            $depcode = $depDetails['department_code'];
+            $divisionCellValue = $depcode . ' ' . $departmentName;
 
-            //dd(end($path), reset($path));
+            $worksheet->mergeCells($Division[0] . ':' . end($Division));
+            $worksheet->setCellValue($Division[0], $divisionCellValue);
 
-            $worksheet->mergeCells(reset($path) . ':' . end($path));
-            $worksheet->setCellValue($path[0], $className);
-            $worksheet->mergeCells($semester[0] . ':' . end($semester));
-            $worksheet->setCellValue($semester[0], $semesterCellValue);
-            $worksheet->mergeCells($grouup[0] . ':' . end($grouup));
-            $worksheet->setCellValue($grouup[0], $groupCellValue);
+            $classId = $events[0]['class_id'];
+            $classesController = new ClassesController;
+            $classDetails = $classesController->getById($classId);
+            $classDetails = json_decode($classDetails->getContent(), true);
+
+
+
+            $semesterCellValue = "SM . " . $events[0]['semester_id'];
+            $groupCellValue = "GP . " . $events[0]['group_id'];
+            if ($state == "teacher") {
+
+                $className = $events[0]['fullname'];
+
+                $worksheet->mergeCells(reset($path) . ':' . end($path));
+                $worksheet->setCellValue($path[0], $className);
+            } else {
+                $className = $classDetails['name'];
+
+                //dd(end($path), reset($path));
+
+                $worksheet->mergeCells(reset($path) . ':' . end($path));
+                $worksheet->setCellValue($path[0], $className);
+                $worksheet->mergeCells($semester[0] . ':' . end($semester));
+                $worksheet->setCellValue($semester[0], $semesterCellValue);
+                $worksheet->mergeCells($grouup[0] . ':' . end($grouup));
+                $worksheet->setCellValue($grouup[0], $groupCellValue);
+            }
         }
+
+
+
+
 
 
         foreach ($newTimeSlotMap as $day => $timeSlots) {
@@ -380,8 +419,10 @@ class ScheduleController extends Controller
                     foreach ($timeSlots as $timeRange => $cellCoordinates) {
                         [$rangeStart, $rangeEnd] = explode(' - ', $timeRange);
 
+                        Log::info($rangeStart . ' ' . $rangeEnd);
+
                         // Check if the event spans this time slot
-                        if ($eventStartTime <= $rangeEnd && $eventEndTime >= $rangeStart) {
+                        if ($eventStartTime < $rangeEnd && $eventEndTime > $rangeStart) {
                             foreach ($cellCoordinates as $element => $coordinates) {
                                 if (!isset($startCoordinate[$element])) {
                                     sort($coordinates);
@@ -395,13 +436,48 @@ class ScheduleController extends Controller
                     }
                 }
 
+
                 if ($startCoordinate && $endCoordinate) {
                     foreach ($startCoordinate as $element => $startCoord) {
-                        if (isset($event[$element])) {
-                            $cellValue = $event[$element];
-                        } else {
-                            $cellValue = "Group: " . $event["group_id"] . " " . $semesterCellValue;
+
+                        //dd($state);
+
+                        // Log::info($startCoordinate);
+                        // Log::info($endCoordinate);
+
+                        if ($state == "classroom") {
+                            switch ($element) {
+                                case 'module_name':
+                                    $cellValue = isset($event['module_name']) ? $event['module_name'] : ($event['reserve'] ?  "E:" . $event['date']  : '');
+                                    break;
+                                case 'classroom_code':
+                                    //  $element = 'reserve';
+                                    break;
+                                case 'teacher_fullname':
+                                    $cellValue = $event['fullname'] ?? '';
+                                    break;
+                            }
                         }
+                        if ($state !== "classroom") {
+                            if (isset($event[$element])) {
+                                $cellValue = $event[$element];
+                            } else {
+                                $cellValue = "Group: " . $event["group_id"] . " " . $semesterCellValue;
+                            }
+                        } else {
+                            if (isset($event[$element])) {
+                                if ($element == "classroom_code" && $event['reserve'] == true) {
+                                    $cellValue = "Reserved";
+                                } else {
+                                    $cellValue = $event[$element];
+                                }
+                            } else {
+                                if ($state !== "classroom") {
+                                    $cellValue = "Group: " . $event["group_id"] . " " . $semesterCellValue;
+                                }
+                            }
+                        }
+
                         if (isset($endCoordinate[$element])) {
                             $worksheet->setCellValue($endCoordinate[$element], $cellValue);
                             if ($element == 'teacher_fullname') {
@@ -413,7 +489,7 @@ class ScheduleController extends Controller
                                     ->setARGB('c0c0c0');
                             }
                             $worksheet->mergeCells($startCoord . ':' . $endCoordinate[$element]);
-                            
+
                             Log::info($startCoord . ':' . $endCoordinate[$element] . ' ' . $cellValue);
                         }
                     }

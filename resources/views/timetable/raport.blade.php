@@ -1,7 +1,11 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="ui container">
+<div class="ui hidden divider"></div>
+<div class="ui hidden divider"></div>
+<div class="ui hidden divider"></div>
+<div class="ui container" id="container">
+<div class="ui hidden divider"></div>
     <div class="ui grid">
         <div class="four wide column">
             <div class="fc-header-form">

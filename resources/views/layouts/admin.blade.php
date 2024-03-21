@@ -69,6 +69,11 @@ bottom: 20px;
 
         }
 
+        .resstate {
+            color: red;
+            font-size: 0.8em;
+        }
+
         /* .active {
             background-color: #007BFF;
             

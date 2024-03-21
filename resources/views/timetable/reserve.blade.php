@@ -5,7 +5,13 @@
 <div id="dialog-confirm" title="Confirm Reservation" style="display: none;">
     <p>The schedule is full. Do you want to proceed?</p>
 </div>
-<div class="ui container" id="containui">
+
+<div class="ui hidden divider"></div>
+<div class="ui hidden divider"></div>
+<div class="ui hidden divider"></div>
+<div class="ui container" id="container">
+<div class="ui hidden divider"></div>
+
     <div class="ui grid">
         <div class="four wide column">
             <div class="fc-header-form">
@@ -128,12 +134,7 @@
 </div>
 </div>
 @endsection
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker-standalone.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 @push('calendar-scripts')
 <script>
     $(document).ready(function() {
@@ -302,10 +303,10 @@
 
                         },
                         open: function() {
-                            $('#containui').addClass('modal-open');
+                            $('#container').addClass('modal-open');
                         },
                         close: function() {
-                            $('#containui').removeClass('modal-open');
+                            $('#container').removeClass('modal-open');
                         }
                     });
                 } else if (response.status === 'success') {

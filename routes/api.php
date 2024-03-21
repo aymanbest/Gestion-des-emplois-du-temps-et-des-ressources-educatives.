@@ -59,6 +59,7 @@ Route::get('/scherev/classroom/{classroom_id}', [ScheduleController::class, 'get
 Route::get('/groups/department/{departmentId}/classes/{classId}', [App\Http\Controllers\GroupController::class, 'getGroupsByDepartmentAndClass']);
 
 Route::get('/raport/teacher/{teacherId}', [ScheduleController::class, 'getTeacherReport']);
+Route::get('/export/classroom/{classroom_id}', [ScheduleController::class, 'generateUpdatedExcelClassroom']);
 Route::get('/export/department/{department_id}/classes/{class_id}/year/{year_id}/group/{group_id}/', [App\Http\Controllers\ScheduleController::class, 'generateUpdatedExcel'])->name('generateUpdatedExcel');
 Route::get('/schedules/teacher/{teacher_id}', [ScheduleController::class, 'getSchedulesByTeacherId'])->name('getSchedulesByTeacherId');
 Route::get('/export/teacher/{teacher_id}', [App\Http\Controllers\ScheduleController::class, 'generateUpdatedExcelTeachers'])->name('generateUpdatedExcelTeachers');
