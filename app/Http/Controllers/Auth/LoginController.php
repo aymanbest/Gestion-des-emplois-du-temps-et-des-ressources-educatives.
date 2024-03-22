@@ -5,6 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
 
 class LoginController extends Controller
 {
@@ -36,5 +42,26 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    public function login(Request $request)
+    {
+
+
+        // Retrieve the user from the database
+        $user = User::where('email', $request->email)->first();
+
+        // Check if the user exists and the password is correct
+        if ($user && Hash::check($request->password, $user->password)) {
+            // dd('login successful');
+            Auth::login($user);
+            return response()->json(['message' => 'connected'], 200);
+        }
+
+        return $request->expectsJson()
+            ? response()->json(['message' => 'The provided credentials are incorrect.'], 422)
+            : back()->withErrors([
+                'email' => 'The provided credentials are incorrect.',
+            ]);
     }
 }

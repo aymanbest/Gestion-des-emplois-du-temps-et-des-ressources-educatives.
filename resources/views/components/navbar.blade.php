@@ -82,13 +82,16 @@
                             </a>
                         </li>
                     </ul>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
                     <div class="item">
                         @if (Auth::user())
-                        <a class="nav-link btn btn-warning" id="logout-button" type="submit">
+                        <a class="nav-link text-danger" id="logout-button" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" type="submit">
                             Log out
                         </a>
                         @else
-                        <a class="nav-link btn btn-outline-light" href="{{ route('login') }}">
+                        <a class="nav-link text-primary" href="{{ route('login') }}">
                             Log in
                         </a>
                         @endif
