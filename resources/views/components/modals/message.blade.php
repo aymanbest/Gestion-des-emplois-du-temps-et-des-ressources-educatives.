@@ -1,27 +1,20 @@
-<div class="ui mini modal">
-    <div class="ui top attached {{ $type }} icon message">
-        <i class="{{ $icon }} icon"></i>
-        <div class="content">
-            {{ $header }}
-        </div>
+
+<div class="ui basic modal">
+    <div class="ui icon header">
+        <i class="archive icon"></i>
+        {{ $title }}
     </div>
-    <div class="ui bottom attached segment">
-        <div class="ui justified container">
-            {{ $content }}
+    <div class="content">
+        <p>{{ $content }}</p>
+    </div>
+    <div class="actions">
+        <div class="ui blue basic cancel inverted button">
+            <i class="archive icon"></i>
+            {{ $allGroupsText }}
         </div>
-        <div class="ui divider"></div>
-        <div class="ui center aligned container">
-            <div class="ui buttons">
-                <button class="ui labeled icon button red" id="btn-modal-decline">
-                    <i class="thumbs down icon"></i>
-                    Decline
-                </button>
-                <div class="or"></div>
-                <button class="ui right labeled icon button teal" id="btn-modal-accept">
-                    <i class="thumbs up icon"></i>
-                    Accept
-                </button>
-            </div>
+        <div id="selectedGroupButton" class="ui green ok inverted button">
+            <i class="checkmark icon"></i>
+            {{ $selectedGroupText }}
         </div>
     </div>
 </div>

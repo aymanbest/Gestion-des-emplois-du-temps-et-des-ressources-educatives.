@@ -2,6 +2,7 @@
 
 
 @section('content')
+@include('components.loaders.loader', ['id' => 'home-loader', 'text' => 'Loading...'])
 <div id="dialog-confirm" title="Confirm Reservation" style="display: none;">
     <p>The schedule is full. Do you want to proceed?</p>
 </div>
@@ -137,6 +138,7 @@
 
 @push('calendar-scripts')
 <script>
+
     $(document).ready(function() {
         getreserv();
 
@@ -145,6 +147,7 @@
                 url: '/api/getReservations',
                 method: 'GET',
                 success: function(reservations) {
+                    $("#home-loader").fadeOut();
                     var report = $('#raport');
                     if (reservations.length === 0) {
                         var message = `

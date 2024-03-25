@@ -158,7 +158,17 @@ class ScheduleController extends Controller
             ->where('schedules.classroom_id', '=', $classroom_id)
             ->get();
 
-        // Fetch reservations
+        $yearController = new YearController;
+        $yearControllerResponse = $yearController->index();
+        
+        $years = json_decode($yearControllerResponse->getContent(), true);
+        $maxYearId = 0;
+        foreach ($years as $year) {
+            if ($year['year_id'] > $maxYearId) {
+                $maxYearId = $year['year_id'];
+            }
+        }
+
         $reservations = DB::table('reservations')
             ->join('classrooms', 'reservations.classroom_id', '=', 'classrooms.classroom_id')
             ->join('teachers', 'reservations.teacher_id', '=', 'teachers.teacher_id')
@@ -166,13 +176,15 @@ class ScheduleController extends Controller
             ->where('reservations.classroom_id', '=', $classroom_id)
             ->get();
 
+        
+
         // Merge schedules and reservations
         $events = [];
         foreach ($schedules as $schedule) {
             array_push($events, array_merge((array)$schedule, ['reserve' => false]));
         }
         foreach ($reservations as $reservation) {
-            array_push($events, array_merge((array)$reservation, ['reserve' => true]));
+            array_push($events, array_merge((array)$reservation, ['reserve' => true, 'year_id' => $maxYearId]));
         }
 
         // Return as JSON

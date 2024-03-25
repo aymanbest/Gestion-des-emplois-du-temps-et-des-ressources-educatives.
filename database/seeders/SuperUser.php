@@ -16,7 +16,7 @@ class SuperUser extends Seeder
     {
         DB::table('users')->insert([
             'name' => 'John Doe',
-            'email' => 'superadmin1@uit.ac.ma',
+            'email' => 'superadmin@fshs.uit.ac.ma',
             'password' => Hash::make('123456'),
         ]);
     }

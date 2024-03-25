@@ -20,6 +20,7 @@
 </style>
 
 @section('content')
+@include('components.loaders.loader', ['id' => 'home-loader', 'text' => 'Loading...'])
     <div class="ui hidden divider"></div>
     <div class="ui hidden divider"></div>
     <div class="ui hidden divider"></div>
@@ -76,6 +77,9 @@
 @endsection
 @push('calendar-scripts')
     <script>
+        $(document).ready(function() {
+        $("#home-loader").fadeOut();
+    });
         function notify(header, message, type = 'success', timeout = 3000) {
             var messageDiv = $('<div class="ui ' + type + ' message"></div>');
             messageDiv.append('<i class="close icon"></i>');
