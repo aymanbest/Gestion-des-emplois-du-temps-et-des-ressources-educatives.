@@ -1,5 +1,4 @@
 <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css'>
-<link rel="stylesheet" href="./style.css">
 <link rel="stylesheet" href="{{ asset('css/log.css') }}">
 
 <body>
@@ -28,8 +27,9 @@
             </div>
         </div>
 
-        <form id="login-form" method="POST" action="{{ route('login') }}" autocomplete="off">
+        <form id="login-form" method="POST" action="{{ route('login') }}" autocomplete="off" spellcheck="false">
             @csrf
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <svg class="logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500.000000 500.000000" preserveAspectRatio="xMidYMid meet">
                 <g transform="translate(0.000000,500.000000) scale(0.100000,-0.100000)" fill="#233ce4" stroke="none">
                     <path d="M2015 4271 c-23 -10 -54 -42 -69 -73 -21 -43 -3 -157 39 -246 42 -89 42 -112 2 -59 -33 44 -83 67 -141 67 -123 0 -209 -102 -193 -225 14 -96 84 -175 206 -232 l76 -36 -37 -9 c-51 -13 -99 -74 -106 -133 -11 -100 71 -194 221 -254 112 -45 167 -105 167 -182 0 -20 5 -29 16 -29 14 0 16 9 12 58 -7 95 -54 146 -208 222 -105 52 -150 105 -150 177 0 90 97 141 175 93 18 -11 40 -32 49 -45 16 -24 46 -34 46 -16 0 21 -130 140 -175 160 -26 11 -78 41 -115 66 -56 38 -74 56 -96 101 -20 42 -25 64 -21 95 22 162 227 173 305 16 12 -24 22 -49 22 -56 0 -6 5 -11 10 -11 10 0 14 36 10 100 -1 19 -17 80 -35 135 -18 55 -36 121 -40 146 -9 60 9 125 40 145 40 26 33 42 -10 25z" />
@@ -38,7 +38,7 @@
             </svg>
 
             <h1>Sign In</h1>
-
+            </div>
             <div class="input email">
                 <input type="text" name="email" id="email" value="email@uit.ac.ma" placeholder=" " autocomplete="off">
                 <label for="email">Email</label>
@@ -46,7 +46,7 @@
 
             <div class="input password">
                 <div class="dots"></div>
-                <input type="password" name="password" id="password" placeholder=" " autocomplete="off">
+                <input type="password" name="password" id="password" placeholder=" " autocomplete="new-password">
                 <label for="password">Password</label>
                 <div class="cursor"></div>
                 <div class="line">
