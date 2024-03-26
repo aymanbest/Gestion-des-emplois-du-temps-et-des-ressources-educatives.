@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ClassesController;
 use Illuminate\Support\Facades\Log;
+
 use PhpParser\Node\Expr\Empty_;
 
 class ScheduleController extends Controller
@@ -39,6 +40,26 @@ class ScheduleController extends Controller
     {
         //
     }
+
+    public function getClassroomReservations()
+{
+    $classrooms = Classroom::all();
+    $classroomsWithReservations = [];
+
+    foreach ($classrooms as $classroom) {
+        $reservations = DB::table('reservations')
+            ->join('classrooms', 'reservations.classroom_id', '=', 'classrooms.classroom_id')
+            ->join('teachers', 'reservations.teacher_id', '=', 'teachers.teacher_id')
+            ->select('reservations.*', 'teachers.teacher_id', 'classrooms.classroom_id')
+            ->where('reservations.classroom_id', '=', $classroom->classroom_id)
+            ->get();
+
+        $classroom->reservations = $reservations;
+        array_push($classroomsWithReservations, $classroom);
+    }
+
+    return response()->json($classroomsWithReservations);
+}
 
     /**
      * Store a newly created resource in storage.

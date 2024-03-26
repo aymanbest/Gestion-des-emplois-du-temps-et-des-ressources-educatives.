@@ -40,13 +40,13 @@
             <h1>Sign In</h1>
             </div>
             <div class="input email">
-                <input type="text" name="email" id="email" value="email@uit.ac.ma" placeholder=" " autocomplete="off">
+                <input type="presentation" name="email" id="email" value="email@uit.ac.ma" placeholder=" " autocomplete="off">
                 <label for="email">Email</label>
             </div>
 
             <div class="input password">
                 <div class="dots"></div>
-                <input type="password" name="password" id="password" placeholder=" " autocomplete="new-password">
+                <input type="presentation" name="password" id="password" placeholder=" " autocomplete="new-password">
                 <label for="password">Password</label>
                 <div class="cursor"></div>
                 <div class="line">

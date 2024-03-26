@@ -68,3 +68,4 @@ Route::get('/test', [App\Http\Controllers\ClassroomController::class, 'testing']
 Route::post('/avClasses', [App\Http\Controllers\ClassroomController::class, 'getAvailableClassrooms'])->name('getAvailableClassrooms');
 Route::post('/reserveClass', [App\Http\Controllers\ScheduleController::class, 'reserveClass'])->name('reserveClass');
 Route::get('/getReservations', [App\Http\Controllers\ReservationController::class, 'index'])->name('index');
+Route::get('/reservations/classroom/',[App\Http\Controllers\ScheduleController::class, 'getClassroomReservations'])->name('getClassroomReservations');
