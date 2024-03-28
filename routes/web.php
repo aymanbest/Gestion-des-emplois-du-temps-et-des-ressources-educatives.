@@ -34,3 +34,5 @@ Route::view('/reserve', 'timetable.reserve')->name('reserve');
 Route::view('/raport', 'timetable.raport')->name('raport');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::view('/classerooms', 'timetable.classrooms')->name('classrooms');
+
+Route::view('/attendence', 'attendence.index')->name('attendence');

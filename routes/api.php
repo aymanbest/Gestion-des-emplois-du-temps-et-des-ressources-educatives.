@@ -69,3 +69,5 @@ Route::post('/avClasses', [App\Http\Controllers\ClassroomController::class, 'get
 Route::post('/reserveClass', [App\Http\Controllers\ScheduleController::class, 'reserveClass'])->name('reserveClass');
 Route::get('/getReservations', [App\Http\Controllers\ReservationController::class, 'index'])->name('index');
 Route::get('/reservations/classroom/',[App\Http\Controllers\ScheduleController::class, 'getClassroomReservations'])->name('getClassroomReservations');
+Route::post('/teacher-attendance', [App\Http\Controllers\TeacherAttendanceController::class, 'store']);
+Route::get('/getattendance', [App\Http\Controllers\TeacherAttendanceController::class, 'show']);
