@@ -1,2 +1,3 @@
-# school
+# Gestion des emplois du temps et des ressources éducatives.
  
+The project involves the management of schedules and educational resources. It aims to meet the growing needs of educational institutions for effective management of resources and educational data. In a context where course scheduling and classroom usage are crucial for optimizing learning, this system offers a centralized and automated solution. By facilitating room reservations and report generation by teachers, it contributes to better course organization and relevant analysis of academic performance. This project is part of an ongoing effort to improve the quality of education and administrative efficiency within educational institutions.
